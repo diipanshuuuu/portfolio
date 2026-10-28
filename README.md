@@ -1,5 +1,7 @@
 # dipanshu singh — ideas, compiled
 
+> **Live site**: [https://dipannshuuuu.web.app](https://dipannshuuuu.web.app)
+
 Personal portfolio of **Dipanshu Singh**, a first-year B.Tech CSE (AI & ML) student at Newton School of Technology who builds open-source tools, web interfaces and local AI.
 
 It's a single page written in plain HTML and CSS: no frameworks, no dependencies, no build step.
