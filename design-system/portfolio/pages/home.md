@@ -1,45 +1,51 @@
 # Home page overrides
 
 These rules override `../MASTER.md` for `index.html` (the whole site is one page).
-Direction as of 2026-10-30: **maximal**. The owner asked for it to look "as crazy as possible".
-The earlier minimal, single-column version (modeled on github.com/amxnn05/Portfolio) is retired.
+
+**Direction (2026-10-30): "minimally crazy, subtly awesome".**
+The base is the minimal single-column layout modeled on github.com/amxnn05/Portfolio, plus a few small, delightful details.
+A full maximal redesign (WebGL shader, boot screen, kinetic type) was tried in commit `67f86c0` and rejected as too much.
+Don't bring that back unless asked.
 
 ## Stack
-- Plain HTML + CSS + vanilla JS. No frameworks, libraries, GSAP or build step.
-- Raw WebGL for the background shader. `script.js` is progressive enhancement: with JS off,
-  every section renders over a static CSS gradient.
+- Plain HTML + CSS. `script.js` is vanilla, progressive enhancement only.
+- No frameworks, no build step.
 
-## Style
-- Neon brutalism + cyberpunk: huge variable type, visible grid, scanlines, film grain,
-  sharp borders, glitch bursts, RGB split on fast scroll.
-- Background: domain-warped fbm plasma, rendered at 1/3 resolution, Bayer-dithered
-  (`image-rendering: pixelated`). Dimmed to ~32% below the hero so body text stays readable.
-- Hero name uses `mix-blend-mode: difference` so it reads over any shader color
-  (switched off in paper mode).
+## Layout
+- Single centered column, `max-width: 42rem`, lowercase section headings.
+- Sections: header → today → past & skills → journey → personal projects → currently exploring → links.
+- Projects are native `<details name="projects">`, first one open.
 
-## Color modes (`html[data-mode]`)
-| Mode | --bg | --accent | --accent-2 | --accent-3 |
-|---|---|---|---|---|
-| acid (default) | `#050607` | `#c6ff3d` | `#ff2bd6` | `#23f0ff` |
-| inferno | `#050607` | `#ff5a1f` | `#ffd400` | `#ff2d55` |
-| ice | `#050607` | `#4df3ff` | `#8b5cff` | `#ff4fd8` |
-| paper (light) | `#f2ede1` | `#d62f00` | `#0047ff` | `#ff2bd6` |
+## Color
+| Token | Dark (default) | Light |
+|---|---|---|
+| `--bg` | `hsl(210 11% 3.5%)` | `#fdf6e3` (cream) |
+| `--fg` | `#e0e2e8` | `#2a2825` |
+| `--accent` | `#22c55e` | `#15803d` |
 
-Mock screens and the shell stay dark in every mode (`--screen-bg`), using `--term-accent`.
+Hidden accents (`html[data-accent]`, via the Konami code or the shell's `accent` command):
+- orange `#fb923c` / light `#c2410c`
+- blue `#38bdf8` / light `#0369a1`
+- pink `#f472b6` / light `#be185d`
+
+Every light shade keeps 4.5:1 on cream.
 
 ## Typography
-- One family: **Recursive** variable (wght 300–1000, CASL, MONO, slnt, CRSV).
-  - Display: wght 1000, CASL 1.
-  - Body: wght 420, CASL 0.2.
-  - UI/mono: MONO 1.
-- Hero and footer letters are driven per-letter by the cursor through `--w/--s/--m/--c/--f`.
-- Outlined text must use `paint-order: stroke fill` with an opaque fill. Plain `text-stroke` on
-  transparent text shows the variable font's overlapping contours.
+- JetBrains Mono **variable** (wght 100–800). Every weight has the same advance width, so per-letter weight can animate without layout shift.
+- Scale: 12 / 14 / 15 / 24px.
+
+## The subtle layer (keep it this restrained)
+- Name decrypts on load; letters thin from 700 to about 180 within 120px of the cursor (fine pointers only).
+- Faint dot grid inside the cursor spotlight.
+- Section titles, footer links and project names scramble for 360ms on hover.
+- Tagline types itself, with a live Ayodhya clock under the theme toggle.
+- Hidden shell (`/` key or the footer "secret shell" button) is a modal dialog: focus stays inside and Escape closes it.
+- Easter eggs: Konami → accent cycle, `sudo hire-me`, a console hello, and a tab title that changes when you leave.
+- `prefers-reduced-motion` disables all of it except the shell and the clock.
 
 ## Motion
-- One rAF loop in `script.js`; it pauses when the tab is hidden. Expensive parts only run when visible.
-- Work section is pinned and scrolls sideways at ≥1000px wide (with motion allowed); otherwise it stacks vertically.
-- `prefers-reduced-motion`: no boot, no custom cursor, no horizontal pin, no word reveal, and the shader renders one still frame.
+- Tokens: `--dur-fast 160ms`, `--dur 280ms`, `--dur-exit 180ms`, `--dur-slow 700ms`, `--ease-out`, `--ease-spring`.
+- Animate transform, opacity and clip-path only. The one exception is the `<details>` height.
 
 ## Résumé
-- Source: `resume/resume.html` (IBM Plex Sans + JetBrains Mono, A4) → `resume.pdf` via headless Chromium.
+- Source: `resume/resume.html` → `resume.pdf` via headless Chromium print.
