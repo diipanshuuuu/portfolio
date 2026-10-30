@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-mode="acid">
 <head>
 	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 	<title>dipanshu singh — ideas, compiled</title>
 	<meta name="description" content="Dipanshu Singh: first-year B.Tech CSE (AI & ML) student at Newton School of Technology, building open-source tools, web interfaces and local AI." />
 	<meta name="author" content="Dipanshu Singh" />
-	<meta name="theme-color" content="#08090a" />
+	<meta name="theme-color" content="#050607" />
 	<meta property="og:type" content="website" />
 	<meta property="og:title" content="dipanshu singh — ideas, compiled" />
 	<meta property="og:description" content="First-year CSE (AI & ML) student building open-source tools, web interfaces and local AI." />
@@ -14,17 +14,22 @@
 	<link rel="icon" href="favicon.svg" type="image/svg+xml" />
 	<link rel="apple-touch-icon" href="apple-touch-icon.png" />
 
-	<!-- Set theme before paint to avoid a flash of the wrong theme -->
+	<!-- Before paint: restore color mode, decide whether to play the boot sequence -->
 	<script>
-		try {
-			var t = localStorage.getItem("theme");
-			if (t) document.documentElement.dataset.theme = t;
-		} catch (e) {}
+		(function () {
+			var d = document.documentElement;
+			d.classList.add("js");
+			try {
+				var m = localStorage.getItem("mode");
+				if (m) d.dataset.mode = m;
+				if (!matchMedia("(prefers-reduced-motion: reduce)").matches && !sessionStorage.getItem("booted")) d.classList.add("js-boot");
+			} catch (e) {}
+		})();
 	</script>
 
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet" />
+	<link href="https://fonts.googleapis.com/css2?family=Recursive:slnt,wght,CASL,CRSV,MONO@-15..0,300..1000,0..1,0..1,0..1&display=swap" rel="stylesheet" />
 	<link rel="stylesheet" href="styles.css" />
 	<script src="script.js" defer></script>
 
@@ -48,251 +53,416 @@
 <body>
 	<a class="skip-link" href="#main">skip to content</a>
 
-	<!-- Cursor spotlight + click sparks (decorative) -->
-	<div class="spotlight" aria-hidden="true"></div>
-	<canvas class="sparks" aria-hidden="true"></canvas>
-
-	<div class="page">
-		<!-- ===== Header ===== -->
-		<header class="header">
-			<div class="intro">
-				<h1 class="name reveal-load" style="--i: 0">hii, i'm <span class="accent-text">dipanshu</span></h1>
-
-				<button class="copy-email reveal-load" style="--i: 1" type="button" data-email="diipupc@gmail.com" aria-label="Copy email address diipupc@gmail.com">
-					<span>diipupc@gmail.com</span>
-					<svg class="icon icon-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
-					<svg class="icon icon-check" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
-				</button>
-				<span class="sr-only" role="status" aria-live="polite" data-copy-status></span>
-
-				<!-- Set --chars to the tagline's character count -->
-				<p class="tagline reveal-load" style="--i: 2">
-					<em class="typed" style="--chars: 25"><span class="typed-text">wandering, full of ideas.</span></em>
-				</p>
-
-				<a class="status reveal-load" style="--i: 3" href="mailto:diipupc@gmail.com">
-					<span class="status-dot" aria-hidden="true"></span>open to work
-				</a>
-			</div>
-
-			<button class="theme-toggle reveal-load" style="--i: 1" type="button">
-				<span class="theme-label-dark"><span class="theme-prefix">switch to </span>light</span>
-				<span class="theme-label-light"><span class="theme-prefix">switch to </span>dark</span>
-			</button>
-		</header>
-
-		<main id="main" class="sections">
-			<!-- ===== Today ===== -->
-			<section class="section reveal-load" style="--i: 5" aria-labelledby="today-title">
-				<h2 id="today-title" class="section-title">today</h2>
-				<p class="lead">
-					I'm Dipanshu Singh, a first-year B.Tech CSE (AI &amp; ML) student at
-					Newton School of Technology, based in Ayodhya. I'm into open source and
-					software development, and lately I've been self-hosting and training AI
-					models with Ollama and Hugging Face.
-				</p>
-			</section>
-
-			<!-- ===== Skills ===== -->
-			<section class="section reveal" aria-labelledby="skills-title">
-				<h2 id="skills-title" class="section-title">past &amp; skills</h2>
-				<dl class="rows">
-					<div class="row">
-						<dt>languages</dt>
-						<dd>Python, JavaScript, C, C++, Rust, Bash</dd>
-					</div>
-					<div class="row">
-						<dt>web</dt>
-						<dd>HTML, CSS, JavaScript, responsive UI</dd>
-					</div>
-					<div class="row">
-						<dt>ai / ml</dt>
-						<dd>Ollama, Hugging Face, local LLM hosting, model training</dd>
-					</div>
-					<div class="row">
-						<dt>tools</dt>
-						<dd>Git, GitHub, VS Code, Vercel</dd>
-					</div>
-				</dl>
-			</section>
-
-			<!-- ===== Journey ===== -->
-			<section class="section reveal" aria-labelledby="journey-title">
-				<h2 id="journey-title" class="section-title">journey</h2>
-				<ol class="timeline">
-					<li class="timeline-item is-current">
-						<div class="timeline-head">
-							<span class="strong">B.Tech CSE (AI &amp; ML) · Newton School of Technology</span>
-							<span class="date">2026 — now</span>
-						</div>
-						<p class="muted">First year, specialising in artificial intelligence and machine learning.</p>
-					</li>
-					<li class="timeline-item">
-						<div class="timeline-head">
-							<span class="strong">Hacktoberfest Hack Day Pune</span>
-							<span class="date">oct 2026</span>
-						</div>
-						<p class="muted">Built Kavach with my team for the Best Open-Source AI Project track.</p>
-					</li>
-					<li class="timeline-item">
-						<div class="timeline-head">
-							<span class="strong">Building on my own</span>
-							<span class="date">2025 — now</span>
-						</div>
-						<p class="muted">Started with SysCleanX, a Windows desktop app in Python, then moved to the web and local AI.</p>
-					</li>
-				</ol>
-			</section>
-
-			<!-- ===== Projects ===== -->
-			<section class="section reveal" aria-labelledby="projects-title">
-				<h2 id="projects-title" class="section-title">personal projects</h2>
-				<div class="projects">
-					<!-- Kavach -->
-					<details class="project" name="projects" open>
-						<summary>
-							<span class="project-title">
-								<span class="project-name">Kavach</span>
-								<span class="pill">local ai · privacy</span>
-							</span>
-							<svg class="icon chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9l-7 7-7-7" /></svg>
-						</summary>
-						<div class="project-body">
-							<div class="thumb" aria-hidden="true">
-								<div class="thumb-bar"><i></i><i></i><i></i><span>kavach · review</span></div>
-								<div class="thumb-lines">
-									<div style="--i: 0"><span class="k">name</span><span class="redact"><span class="raw">Rahul Sharma</span><span class="mask">[PERSON_1]</span></span></div>
-									<div style="--i: 1"><span class="k">aadhaar</span><span class="redact"><span class="raw">2345 6789 0123</span><span class="mask">[AADHAAR_1]</span></span></div>
-									<div style="--i: 2"><span class="k">pan</span><span class="redact"><span class="raw">ABCDE1234F</span><span class="mask">[PAN_1]</span></span></div>
-									<div class="ok is-result">✓ masked on-device</div>
-								</div>
-							</div>
-							<div class="project-info">
-								<p class="project-desc">
-									A local privacy shield for AI chats. This browser extension catches Indian
-									personal data (Aadhaar, PAN, bank details, names, addresses) in anything you
-									paste or upload to ChatGPT, Gemini or Claude, and masks it before it leaves
-									your laptop. Open-weight models on your own machine lift detection recall
-									from 69% to 97% with zero false alarms in testing.
-								</p>
-								<p class="project-stack">python · fastapi · hugging face · ollama · tesseract · typescript</p>
-								<div class="project-links">
-									<a href="https://github.com/diipanshuuuu/Kavach" target="_blank" rel="noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>git</a>
-								</div>
-							</div>
-						</div>
-					</details>
-
-					<!-- NST SDC -->
-					<details class="project" name="projects">
-						<summary>
-							<span class="project-title">
-								<span class="project-name">NST SDC site</span>
-								<span class="pill">web · vanilla js</span>
-							</span>
-							<svg class="icon chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9l-7 7-7-7" /></svg>
-						</summary>
-						<div class="project-body">
-							<div class="thumb" aria-hidden="true">
-								<div class="thumb-bar"><i></i><i></i><i></i><span>zsh — nst-sdc</span><kbd>⌘K</kbd></div>
-								<div class="thumb-lines">
-									<div style="--i: 0"><span class="p">$</span> help</div>
-									<div style="--i: 1" class="m">repos stack join theme</div>
-									<div style="--i: 2"><span class="p">$</span> theme light</div>
-									<div style="--i: 3" class="m">› switched to light</div>
-									<div style="--i: 4"><span class="p">$</span> <span class="cursor"></span></div>
-								</div>
-							</div>
-							<div class="project-info">
-								<p class="project-desc">
-									An unofficial, from-scratch redesign of my college's Student Developer Club
-									site in plain HTML, CSS and JS. It has a working in-browser terminal, a ⌘K
-									command palette, a filterable showcase of real student repos, and dark and
-									light themes, and holds up on screens as small as 360px.
-								</p>
-								<p class="project-stack">html · css · javascript · vercel</p>
-								<div class="project-links">
-									<a href="https://github.com/diipanshuuuu/NST-SDC-site" target="_blank" rel="noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>git</a>
-									<a href="https://nst-sdc-site-ten.vercel.app" target="_blank" rel="noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>live</a>
-								</div>
-							</div>
-						</div>
-					</details>
-
-					<!-- SysCleanX -->
-					<details class="project" name="projects">
-						<summary>
-							<span class="project-title">
-								<span class="project-name">SysCleanX</span>
-								<span class="pill">desktop · python</span>
-							</span>
-							<svg class="icon chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9l-7 7-7-7" /></svg>
-						</summary>
-						<div class="project-body">
-							<div class="thumb" aria-hidden="true">
-								<div class="thumb-bar"><i></i><i></i><i></i><span>syscleanx</span></div>
-								<div class="thumb-lines">
-									<div style="--i: 0"><span class="p">›</span> clean</div>
-									<div style="--i: 1"><span class="ok">✓</span> temp files</div>
-									<div style="--i: 2"><span class="ok">✓</span> internet cache</div>
-									<div style="--i: 3"><span class="ok">✓</span> prefetch</div>
-									<div style="--i: 4"><span class="ok">✓</span> recycle bin</div>
-									<div style="--i: 5" class="m">› uninstall apps…</div>
-								</div>
-							</div>
-							<div class="project-info">
-								<p class="project-desc">
-									A minimal Windows PC cleaner and app uninstaller. It clears temp files,
-									internet caches, prefetch data and the recycle bin, and lists installed
-									programs so you can launch their uninstallers, all from one lightweight
-									window.
-								</p>
-								<p class="project-stack">python · customtkinter · windows</p>
-								<div class="project-links">
-									<a href="https://github.com/htmnsrc/SysCleanX" target="_blank" rel="noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>git</a>
-								</div>
-							</div>
-						</div>
-					</details>
-				</div>
-			</section>
-
-			<!-- ===== Exploring ===== -->
-			<section class="section reveal" aria-labelledby="exploring-title">
-				<h2 id="exploring-title" class="section-title underlined">currently exploring</h2>
-				<ul class="chips">
-					<li class="pill">self-hosted LLMs</li>
-					<li class="pill">model training</li>
-					<li class="pill">open source</li>
-				</ul>
-			</section>
-		</main>
-
-		<!-- ===== Links ===== -->
-		<footer class="section footer reveal" aria-labelledby="links-title">
-			<h2 id="links-title" class="section-title">links</h2>
-			<nav class="links" aria-label="Social links">
-				<a href="https://github.com/diipanshuuuu" target="_blank" rel="noreferrer">
-					<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" /></svg>github
-				</a>
-				<a href="https://github.com/htmnsrc" target="_blank" rel="noreferrer">
-					<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" /></svg>github · personal
-				</a>
-				<a href="https://www.linkedin.com/in/dipanshu-singh-86b2ba444/" target="_blank" rel="noreferrer">
-					<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z" /><rect x="2" y="9" width="4" height="12" /><circle cx="4" cy="4" r="2" /></svg>linkedin
-				</a>
-				<a href="mailto:diipupc@gmail.com">
-					<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>email
-				</a>
-				<a href="resume.pdf" target="_blank" rel="noreferrer">
-					<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>resume
-				</a>
-			</nav>
-			<p class="colophon">© 2026 dipanshu singh · hand-written html &amp; css</p>
-		</footer>
+	<!-- ============ FX layers (decorative) ============ -->
+	<canvas class="fx-gl" aria-hidden="true"></canvas>
+	<div class="fx-grid" aria-hidden="true"></div>
+	<div class="fx-scan" aria-hidden="true"></div>
+	<div class="fx-grain" aria-hidden="true"></div>
+	<div class="fx-flash" aria-hidden="true"></div>
+	<canvas class="fx-sparks" aria-hidden="true"></canvas>
+	<canvas class="fx-matrix" aria-hidden="true"></canvas>
+	<div class="cursor" aria-hidden="true">
+		<div class="cursor-ring"><i></i><span class="cursor-label"></span></div>
+		<div class="cursor-dot"></div>
 	</div>
 
-	<!-- Bottom fade -->
-	<div class="bottom-fade" aria-hidden="true"></div>
+	<!-- ============ Boot sequence (first visit per session) ============ -->
+	<div class="boot" aria-hidden="true">
+		<div class="boot-inner">
+			<pre class="boot-log"></pre>
+			<div class="boot-meter"><span class="boot-bar"><i></i></span><b class="boot-pct">000%</b></div>
+			<p class="boot-granted" data-text="access granted">access granted</p>
+		</div>
+		<p class="boot-skip">press any key to skip</p>
+	</div>
+
+	<!-- ============ HUD ============ -->
+	<header class="hud">
+		<a class="hud-logo" href="#top" data-cursor="top">
+			<span class="logo-mark" aria-hidden="true">d<i>.</i></span>
+			<span class="logo-text">dipanshu singh</span>
+		</a>
+
+		<nav class="hud-nav" aria-label="Sections">
+			<a href="#today" data-scramble><i>01</i>today</a>
+			<a href="#skills" data-scramble><i>02</i>skills</a>
+			<a href="#work" data-scramble><i>03</i>work</a>
+			<a href="#log" data-scramble><i>04</i>log</a>
+			<a href="#shell" data-scramble><i>05</i>shell</a>
+			<a href="#contact" data-scramble><i>06</i>contact</a>
+		</nav>
+
+		<div class="hud-tools">
+			<button class="hud-btn mode-btn" type="button" data-cursor="mode">mode <b data-mode-label>acid</b></button>
+			<button class="hud-btn sound-btn" type="button" aria-pressed="false" data-cursor="sound">snd <b>off</b></button>
+			<button class="hud-btn menu-btn" type="button" aria-expanded="false" aria-controls="menu">menu</button>
+		</div>
+	</header>
+
+	<div class="hud-foot" aria-hidden="true">
+		<span class="hud-clock">ayd --:--:-- ist</span>
+		<span class="hud-coords">26.79°n 82.20°e</span>
+		<span class="hud-section"><b>00</b>/06 boot</span>
+		<span class="hud-scroll">scroll 000%</span>
+	</div>
+	<div class="progress" aria-hidden="true"><i></i></div>
+
+	<!-- Full-screen menu (small screens) -->
+	<div class="menu" id="menu" hidden>
+		<nav class="menu-nav" aria-label="Menu">
+			<a href="#today"><i>01</i>today</a>
+			<a href="#skills"><i>02</i>skills</a>
+			<a href="#work"><i>03</i>work</a>
+			<a href="#log"><i>04</i>log</a>
+			<a href="#shell"><i>05</i>shell</a>
+			<a href="#contact"><i>06</i>contact</a>
+		</nav>
+		<p class="menu-foot">diipupc@gmail.com · ayodhya, in</p>
+	</div>
+
+	<main id="main">
+		<!-- ============ Hero ============ -->
+		<section id="top" class="hero" aria-labelledby="hero-title" data-section="00" data-name="boot">
+			<p class="hero-kicker hero-reveal">
+				<span class="blink" aria-hidden="true">■</span>
+				portfolio.v2026 — b.tech cse (ai &amp; ml) @ newton school of technology
+			</p>
+
+			<h1 id="hero-title" class="hero-title">
+				<span class="sr-only">Dipanshu Singh</span>
+				<span class="hero-line" aria-hidden="true"><span class="ch">D</span><span class="ch">I</span><span class="ch">P</span><span class="ch">A</span><span class="ch">N</span><span class="ch">S</span><span class="ch">H</span><span class="ch">U</span></span>
+				<span class="hero-line hero-line--outline" aria-hidden="true"><span class="ch">S</span><span class="ch">I</span><span class="ch">N</span><span class="ch">G</span><span class="ch">H</span><span class="hero-dot">.</span></span>
+			</h1>
+
+			<div class="hero-grid">
+				<div class="hero-sub hero-reveal">
+					<p class="hero-tag mono"><span class="prompt">&gt;</span> <span class="typer">wandering, full of ideas.</span><span class="caret" aria-hidden="true"></span></p>
+					<p class="hero-role mono">currently: <span class="role">builder</span></p>
+				</div>
+
+				<div class="hero-cta hero-reveal">
+					<a class="btn btn--solid" href="#work" data-magnetic data-cursor="go"><span>see the work</span><b aria-hidden="true">↓</b></a>
+					<button class="btn btn--ghost" type="button" data-copy-email data-magnetic data-cursor="copy"><span>copy email</span><b aria-hidden="true">⧉</b></button>
+					<a class="status" href="mailto:diipupc@gmail.com"><i aria-hidden="true"></i>open to work</a>
+				</div>
+			</div>
+
+			<div class="hero-meta mono hero-reveal" aria-hidden="true">
+				<span>ayodhya, in</span>
+				<span>26.79°n / 82.20°e</span>
+				<span>ist +05:30</span>
+				<span>build 26.10</span>
+			</div>
+
+			<a class="badge" href="mailto:diipupc@gmail.com" aria-label="Email Dipanshu, open to work" data-cursor="mail">
+				<svg viewBox="0 0 200 200" aria-hidden="true">
+					<defs><path id="badge-circle" d="M100,100 m-74,0 a74,74 0 1,1 148,0 a74,74 0 1,1 -148,0" /></defs>
+					<text><textPath href="#badge-circle">open to work ✦ open to work ✦ open to work ✦ </textPath></text>
+				</svg>
+				<b aria-hidden="true">↗</b>
+			</a>
+
+			<a class="scroll-cue mono" href="#today" aria-label="Scroll to the about section"><span>scroll</span><i></i></a>
+		</section>
+
+		<!-- ============ Marquees ============ -->
+		<div class="marquees" aria-hidden="true">
+			<div class="marquee marquee--a" data-dir="1">
+				<div class="marquee-track">
+					<span>open source ✦ local ai ✦ python ✦ rust ✦ c++ ✦ ollama ✦ hugging face ✦ vanilla js ✦ ship it ✦ </span><span>open source ✦ local ai ✦ python ✦ rust ✦ c++ ✦ ollama ✦ hugging face ✦ vanilla js ✦ ship it ✦ </span>
+				</div>
+			</div>
+			<div class="marquee marquee--b" data-dir="-1">
+				<div class="marquee-track">
+					<span>ideas → compiled ✦ open to work ✦ build in public ✦ no frameworks were harmed ✦ </span><span>ideas → compiled ✦ open to work ✦ build in public ✦ no frameworks were harmed ✦ </span>
+				</div>
+			</div>
+		</div>
+
+		<!-- ============ 01 Today ============ -->
+		<section id="today" class="sec about" aria-labelledby="today-title" data-section="01" data-name="today">
+			<header class="sec-head">
+				<span class="sec-index" aria-hidden="true">01</span>
+				<h2 id="today-title" class="sec-title" data-scramble>today</h2>
+				<p class="sec-note mono">// who's compiling this</p>
+			</header>
+
+			<p class="statement" data-words>
+				I'm <mark>Dipanshu Singh</mark>, a first-year B.Tech CSE (AI &amp; ML) student at
+				<mark>Newton School of Technology</mark>, based in Ayodhya. I'm into <mark>open source</mark>
+				and software development, and lately I've been <mark>self-hosting and training AI models</mark>
+				with Ollama and Hugging Face.
+			</p>
+
+			<dl class="facts">
+				<div class="fact"><dt class="mono">base</dt><dd>ayodhya, in</dd></div>
+				<div class="fact"><dt class="mono">doing</dt><dd>b.tech cse (ai &amp; ml)</dd></div>
+				<div class="fact"><dt class="mono">at</dt><dd>newton school of technology</dd></div>
+				<div class="fact fact--hot"><dt class="mono">status</dt><dd>open to work</dd></div>
+			</dl>
+		</section>
+
+		<!-- ============ 02 Skills ============ -->
+		<section id="skills" class="sec skills" aria-labelledby="skills-title" data-section="02" data-name="skills">
+			<header class="sec-head">
+				<span class="sec-index" aria-hidden="true">02</span>
+				<h2 id="skills-title" class="sec-title" data-scramble>skills</h2>
+				<p class="sec-note mono">// the toolbox — drag the orb</p>
+			</header>
+
+			<div class="skills-grid">
+				<div class="sphere" aria-hidden="true" data-cursor="drag"></div>
+
+				<div class="stack">
+					<div class="stack-group">
+						<h3 class="mono">languages</h3>
+						<ul class="keys"><li>Python</li><li>JavaScript</li><li>C</li><li>C++</li><li>Rust</li><li>Bash</li></ul>
+					</div>
+					<div class="stack-group">
+						<h3 class="mono">web</h3>
+						<ul class="keys"><li>HTML</li><li>CSS</li><li>JavaScript</li><li>responsive UI</li></ul>
+					</div>
+					<div class="stack-group">
+						<h3 class="mono">ai / ml</h3>
+						<ul class="keys"><li>Ollama</li><li>Hugging Face</li><li>local LLMs</li><li>model training</li></ul>
+					</div>
+					<div class="stack-group">
+						<h3 class="mono">tools</h3>
+						<ul class="keys"><li>Git</li><li>GitHub</li><li>VS Code</li><li>Vercel</li><li>Firebase</li></ul>
+					</div>
+					<div class="stack-group">
+						<h3 class="mono">exploring</h3>
+						<ul class="keys keys--hot"><li>self-hosted LLMs</li><li>model training</li><li>open source</li></ul>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- ============ 03 Work (horizontal on wide screens) ============ -->
+		<section id="work" class="work" aria-labelledby="work-title" data-section="03" data-name="work">
+			<div class="work-sticky">
+				<header class="sec-head work-head">
+					<span class="sec-index" aria-hidden="true">03</span>
+					<h2 id="work-title" class="sec-title" data-scramble>work</h2>
+					<p class="sec-note mono">// selected builds <span class="work-count" aria-hidden="true"><b>01</b>/04</span></p>
+				</header>
+
+				<div class="work-track">
+					<!-- Kavach -->
+					<article class="card" aria-labelledby="p1-title">
+						<div class="card-inner">
+							<div class="card-text">
+								<div class="card-top mono"><span class="card-num" aria-hidden="true">01</span><span>local ai · privacy · hackathon</span></div>
+								<h3 id="p1-title" class="card-title glitch" data-text="KAVACH">KAVACH</h3>
+								<p class="card-desc">
+									A local privacy shield for AI chats. This browser extension catches Indian personal data
+									(Aadhaar, PAN, bank details, names, addresses) in anything you paste or upload to ChatGPT,
+									Gemini or Claude, and masks it before it leaves your laptop.
+								</p>
+								<dl class="stats">
+									<div><dt class="mono">recall</dt><dd>97.3%</dd></div>
+									<div><dt class="mono">false alarms</dt><dd>0</dd></div>
+									<div><dt class="mono">per doc</dt><dd>~60ms</dd></div>
+								</dl>
+								<p class="card-stack mono">python · fastapi · hugging face · ollama · tesseract · typescript</p>
+								<div class="card-links">
+									<a class="link-x" href="https://github.com/diipanshuuuu/Kavach" target="_blank" rel="noreferrer" data-cursor="open"><span>github</span><b aria-hidden="true">↗</b></a>
+								</div>
+							</div>
+
+							<div class="screen screen--kavach" data-state="done" aria-hidden="true">
+								<div class="scr-bar"><i></i><i></i><i></i><span>chatgpt.com</span><b class="scr-badge">kavach on</b></div>
+								<div class="scr-body">
+									<p class="scr-label mono">you are pasting →</p>
+									<p class="kv-msg">
+										hi, i'm <span class="pii"><span class="raw">Rahul Sharma</span><span class="mask">[PERSON_1]</span></span>.
+										aadhaar <span class="pii"><span class="raw">2345 6789 0123</span><span class="mask">[AADHAAR_1]</span></span>,
+										pan <span class="pii"><span class="raw">ABCDE1234F</span><span class="mask">[PAN_1]</span></span>.
+										can you fill this form?
+									</p>
+									<div class="kv-scan mono"><span class="kv-scan-bar"><i></i></span><span>scanning on-device…</span></div>
+									<ul class="kv-found mono"><li>person</li><li>aadhaar ✓ verhoeff</li><li>pan</li></ul>
+									<p class="kv-result mono">✓ 3 items masked · nothing left your laptop</p>
+								</div>
+							</div>
+						</div>
+						<div class="card-glare" aria-hidden="true"></div>
+					</article>
+
+					<!-- NST SDC -->
+					<article class="card" aria-labelledby="p2-title">
+						<div class="card-inner">
+							<div class="card-text">
+								<div class="card-top mono"><span class="card-num" aria-hidden="true">02</span><span>web · vanilla js · redesign</span></div>
+								<h3 id="p2-title" class="card-title glitch" data-text="NST SDC">NST SDC</h3>
+								<p class="card-desc">
+									An unofficial, from-scratch redesign of my college's Student Developer Club site in plain
+									HTML, CSS and JS, with a working in-browser terminal, a ⌘K command palette, a filterable
+									showcase of real student repos, and dark and light themes.
+								</p>
+								<dl class="stats">
+									<div><dt class="mono">frameworks</dt><dd>0</dd></div>
+									<div><dt class="mono">palette</dt><dd>⌘K</dd></div>
+									<div><dt class="mono">min width</dt><dd>360px</dd></div>
+								</dl>
+								<p class="card-stack mono">html · css · javascript · vercel</p>
+								<div class="card-links">
+									<a class="link-x" href="https://nst-sdc-site-ten.vercel.app" target="_blank" rel="noreferrer" data-cursor="open"><span>live site</span><b aria-hidden="true">↗</b></a>
+									<a class="link-x" href="https://github.com/diipanshuuuu/NST-SDC-site" target="_blank" rel="noreferrer" data-cursor="open"><span>github</span><b aria-hidden="true">↗</b></a>
+								</div>
+							</div>
+
+							<div class="screen screen--term" aria-hidden="true">
+								<div class="scr-bar"><i></i><i></i><i></i><span>zsh — nst-sdc</span><kbd>⌘K</kbd></div>
+								<pre class="scr-term"><span class="p">$</span> help
+  repos  stack  join  theme  clear
+<span class="p">$</span> repos --filter devtools
+  ▸ StackMate        vs code extension
+  ▸ Screentime-recoder   focus tracker
+<span class="p">$</span> theme light
+  <span class="ok">✓ switched to light</span>
+<span class="p">$</span> <span class="cur"></span></pre>
+								<div class="scr-palette mono"><p>jump to…</p><ul><li>repos</li><li class="is-sel">join the club</li><li>toggle theme</li></ul></div>
+							</div>
+						</div>
+						<div class="card-glare" aria-hidden="true"></div>
+					</article>
+
+					<!-- SysCleanX -->
+					<article class="card" aria-labelledby="p3-title">
+						<div class="card-inner">
+							<div class="card-text">
+								<div class="card-top mono"><span class="card-num" aria-hidden="true">03</span><span>desktop · python · windows</span></div>
+								<h3 id="p3-title" class="card-title glitch" data-text="SYSCLEANX">SYSCLEANX</h3>
+								<p class="card-desc">
+									A minimal Windows PC cleaner and app uninstaller. It clears temp files, internet caches,
+									prefetch data and the recycle bin, and lists installed programs so you can launch their
+									uninstallers, all from one lightweight window.
+								</p>
+								<dl class="stats">
+									<div><dt class="mono">cleanup targets</dt><dd>4+</dd></div>
+									<div><dt class="mono">window</dt><dd>1</dd></div>
+									<div><dt class="mono">license</dt><dd>MIT</dd></div>
+								</dl>
+								<p class="card-stack mono">python · customtkinter · windows</p>
+								<div class="card-links">
+									<a class="link-x" href="https://github.com/htmnsrc/SysCleanX" target="_blank" rel="noreferrer" data-cursor="open"><span>github</span><b aria-hidden="true">↗</b></a>
+								</div>
+							</div>
+
+							<div class="screen screen--clean" data-state="done" aria-hidden="true">
+								<div class="scr-bar"><i></i><i></i><i></i><span>syscleanx.exe</span></div>
+								<div class="scr-body">
+									<div class="cl-row mono"><span>temp files</span><i></i></div>
+									<div class="cl-row mono"><span>internet cache</span><i></i></div>
+									<div class="cl-row mono"><span>prefetch</span><i></i></div>
+									<div class="cl-row mono"><span>recycle bin</span><i></i></div>
+									<p class="cl-status mono">✓ your pc can breathe again</p>
+								</div>
+							</div>
+						</div>
+						<div class="card-glare" aria-hidden="true"></div>
+					</article>
+
+					<!-- More -->
+					<article class="card card--end" aria-labelledby="p4-title">
+						<div class="card-inner">
+							<div class="card-text">
+								<div class="card-top mono"><span class="card-num" aria-hidden="true">04</span><span>wip · experiments · chaos</span></div>
+								<h3 id="p4-title" class="card-title glitch" data-text="MORE IN THE OVEN">MORE IN THE OVEN</h3>
+								<p class="card-desc">Half-baked ideas, experiments and everything else live on GitHub.</p>
+								<div class="card-links">
+									<a class="link-x" href="https://github.com/diipanshuuuu" target="_blank" rel="noreferrer" data-cursor="open"><span>@diipanshuuuu</span><b aria-hidden="true">↗</b></a>
+									<a class="link-x" href="https://github.com/htmnsrc" target="_blank" rel="noreferrer" data-cursor="open"><span>@htmnsrc</span><b aria-hidden="true">↗</b></a>
+								</div>
+							</div>
+						</div>
+					</article>
+				</div>
+
+				<div class="work-progress" aria-hidden="true"><i></i></div>
+			</div>
+		</section>
+
+		<!-- ============ 04 Log ============ -->
+		<section id="log" class="sec log" aria-labelledby="log-title" data-section="04" data-name="log">
+			<header class="sec-head">
+				<span class="sec-index" aria-hidden="true">04</span>
+				<h2 id="log-title" class="sec-title" data-scramble>log</h2>
+				<p class="sec-note mono">// git log --graph --oneline</p>
+			</header>
+
+			<ol class="gitlog mono">
+				<li class="commit" style="--i: 0"><span class="g" aria-hidden="true">*  </span><code class="hash">e1f0a9b</code> <span class="refs">(HEAD -&gt; <b>main</b>)</span> <span class="msg">open to work: internships, freelance, open source</span> <time>now</time></li>
+				<li class="commit commit--edge" style="--i: 1" aria-hidden="true"><span class="g">|\ </span></li>
+				<li class="commit" style="--i: 2"><span class="g" aria-hidden="true">| *</span><code class="hash">4be81d0</code> <span class="refs refs--b">(hackathon)</span> <span class="msg">built Kavach with my team @ Hacktoberfest Hack Day Pune, Best Open-Source AI Project track</span> <time>oct 2026</time></li>
+				<li class="commit commit--edge" style="--i: 3" aria-hidden="true"><span class="g">|/ </span></li>
+				<li class="commit" style="--i: 4"><span class="g" aria-hidden="true">*  </span><code class="hash">2c7d9e4</code> <span class="msg">redesigned the NST SDC site from scratch in vanilla html, css &amp; js</span> <time>sep 2026</time></li>
+				<li class="commit" style="--i: 5"><span class="g" aria-hidden="true">*  </span><code class="hash">7d3b2f1</code> <span class="refs refs--c">(tag: b.tech)</span> <span class="msg">joined Newton School of Technology: CSE (AI &amp; ML)</span> <time>2026</time></li>
+				<li class="commit" style="--i: 6"><span class="g" aria-hidden="true">*  </span><code class="hash">1a7e0c3</code> <span class="msg">shipped SysCleanX, a first desktop app in python</span> <time>sep 2025</time></li>
+				<li class="commit" style="--i: 7"><span class="g" aria-hidden="true">*  </span><code class="hash">0000001</code> <span class="msg">initial commit: hello, world</span> <time>—</time></li>
+			</ol>
+		</section>
+
+		<!-- ============ 05 Shell ============ -->
+		<section id="shell" class="sec shell" aria-labelledby="shell-title" data-section="05" data-name="shell">
+			<header class="sec-head">
+				<span class="sec-index" aria-hidden="true">05</span>
+				<h2 id="shell-title" class="sec-title" data-scramble>shell</h2>
+				<p class="sec-note mono">// talk to me. literally.</p>
+			</header>
+
+			<div class="term mono" data-cursor="type">
+				<div class="scr-bar"><i></i><i></i><i></i><span>guest@dipanshu: ~</span></div>
+				<div class="term-out" aria-live="polite">
+					<p>DipanshuOS 26.10 — tty2</p>
+					<p class="dim">type <b>help</b> for commands. try <b>neofetch</b>, <b>matrix</b> or <b>sudo hire-me</b>.</p>
+					<noscript><p class="dim">(the shell needs javascript; everything else works without it.)</p></noscript>
+				</div>
+				<form class="term-form" autocomplete="off">
+					<label class="term-prompt" for="term-in">guest@dipanshu:~$</label>
+					<input id="term-in" class="term-in" type="text" spellcheck="false" autocapitalize="off" autocomplete="off" enterkeyhint="send" />
+				</form>
+			</div>
+			<p class="shell-hint mono">tab autocompletes · ↑ ↓ history · psst: the konami code works too</p>
+		</section>
+	</main>
+
+	<!-- ============ 06 Contact ============ -->
+	<footer id="contact" class="contact" aria-labelledby="contact-title" data-section="06" data-name="contact">
+		<header class="sec-head">
+			<span class="sec-index" aria-hidden="true">06</span>
+			<p class="sec-title" data-scramble>contact</p>
+			<p class="sec-note mono">// ping me</p>
+		</header>
+
+		<h2 id="contact-title" class="contact-title">
+			<span class="ct-line">let's build</span>
+			<span class="ct-line ct-line--outline">something</span>
+			<span class="ct-line ct-line--accent">crazy.</span>
+		</h2>
+
+		<button class="mega-email" type="button" data-copy-email data-magnetic="0.06" data-cursor="copy">
+			<span class="mega-email-text">diipupc@gmail.com</span>
+			<span class="mega-email-hint mono">click to copy</span>
+		</button>
+
+		<nav class="rows" aria-label="Links">
+			<a class="row-link" href="https://github.com/diipanshuuuu" target="_blank" rel="noreferrer"><span class="row-name" data-scramble>github</span><span class="row-meta mono">@diipanshuuuu</span><b aria-hidden="true">↗</b></a>
+			<a class="row-link" href="https://github.com/htmnsrc" target="_blank" rel="noreferrer"><span class="row-name" data-scramble>github · personal</span><span class="row-meta mono">@htmnsrc</span><b aria-hidden="true">↗</b></a>
+			<a class="row-link" href="https://www.linkedin.com/in/dipanshu-singh-86b2ba444/" target="_blank" rel="noreferrer"><span class="row-name" data-scramble>linkedin</span><span class="row-meta mono">dipanshu singh</span><b aria-hidden="true">↗</b></a>
+			<a class="row-link" href="resume.pdf" target="_blank" rel="noreferrer"><span class="row-name" data-scramble>resume</span><span class="row-meta mono">pdf · 1 page</span><b aria-hidden="true">↗</b></a>
+		</nav>
+
+		<div class="foot-bar mono">
+			<span>© 2026 dipanshu singh</span>
+			<span>hand-coded in vanilla html, css &amp; js. no frameworks were harmed.</span>
+			<a href="#top" data-scramble>back to top ↑</a>
+		</div>
+
+		<p class="foot-giant" aria-hidden="true"><span class="ch">D</span><span class="ch">I</span><span class="ch">P</span><span class="ch">A</span><span class="ch">N</span><span class="ch">S</span><span class="ch">H</span><span class="ch">U</span></p>
+	</footer>
+
+	<div class="toast mono" role="status" aria-live="polite"></div>
 </body>
 </html>

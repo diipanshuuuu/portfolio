@@ -1,40 +1,45 @@
 # Home page overrides
 
 These rules override `../MASTER.md` for `index.html` (the whole site is one page).
-The layout follows the reference portfolio github.com/amxnn05/Portfolio, rebuilt in vanilla HTML/CSS.
+Direction as of 2026-10-30: **maximal**. The owner asked for it to look "as crazy as possible".
+The earlier minimal, single-column version (modeled on github.com/amxnn05/Portfolio) is retired.
 
 ## Stack
-- Plain HTML + CSS. `script.js` is progressive enhancement only (theme switch, copy email,
-  cursor spotlight, click sparks, scroll-reveal fallback). No build step, no frameworks, no GSAP.
+- Plain HTML + CSS + vanilla JS. No frameworks, libraries, GSAP or build step.
+- Raw WebGL for the background shader. `script.js` is progressive enhancement: with JS off,
+  every section renders over a static CSS gradient.
 
-## Layout
-- Single centered column, `max-width: 42rem`, lowercase section headings.
-- Sections: header → today → past & skills → journey → personal projects → currently exploring → links.
-- Projects are native `<details name="projects">` (exclusive accordion), first one open.
-- Ignore MASTER's "FAQ/Documentation Landing" pattern; it was a mismatch.
+## Style
+- Neon brutalism + cyberpunk: huge variable type, visible grid, scanlines, film grain,
+  sharp borders, glitch bursts, RGB split on fast scroll.
+- Background: domain-warped fbm plasma, rendered at 1/3 resolution, Bayer-dithered
+  (`image-rendering: pixelated`). Dimmed to ~32% below the hero so body text stays readable.
+- Hero name uses `mix-blend-mode: difference` so it reads over any shader color
+  (switched off in paper mode).
 
-## Color (replaces MASTER palette)
-| Token | Dark (default) | Light |
-|---|---|---|
-| `--bg` | `hsl(210 11% 3.5%)` | `#fdf6e3` (cream) |
-| `--fg` | `#e0e2e8` | `#2a2825` |
-| `--accent` | `#22c55e` | `#15803d` (4.6:1 on cream) |
-| text tiers | white at 92 / 80 / 64 / 52% | black at 92 / 80 / 68 / 60% |
+## Color modes (`html[data-mode]`)
+| Mode | --bg | --accent | --accent-2 | --accent-3 |
+|---|---|---|---|---|
+| acid (default) | `#050607` | `#c6ff3d` | `#ff2bd6` | `#23f0ff` |
+| inferno | `#050607` | `#ff5a1f` | `#ffd400` | `#ff2d55` |
+| ice | `#050607` | `#4df3ff` | `#8b5cff` | `#ff4fd8` |
+| paper (light) | `#f2ede1` | `#d62f00` | `#0047ff` | `#ff2bd6` |
 
-Light mode is supported (MASTER said "not recommended"); dark stays the default.
+Mock screens and the shell stay dark in every mode (`--screen-bg`), using `--term-accent`.
 
-## Typography (replaces MASTER pairing)
-- One family: JetBrains Mono (400, 500, 700, italic 400). No IBM Plex Sans on the site.
-- Scale: 12 / 14 / 15 / 24px. Body is 15px: the 16px mobile rule exists to stop iOS input
-  zoom, and the page has no inputs.
+## Typography
+- One family: **Recursive** variable (wght 300–1000, CASL, MONO, slnt, CRSV).
+  - Display: wght 1000, CASL 1.
+  - Body: wght 420, CASL 0.2.
+  - UI/mono: MONO 1.
+- Hero and footer letters are driven per-letter by the cursor through `--w/--s/--m/--c/--f`.
+- Outlined text must use `paint-order: stroke fill` with an opaque fill. Plain `text-stroke` on
+  transparent text shows the variable font's overlapping contours.
 
 ## Motion
-- Tokens: `--dur-fast 160ms`, `--dur 280ms`, `--dur-exit 180ms` (exits ~65% of enters),
-  `--dur-slow 700ms`, `--ease-out`, `--ease-spring` (CSS `linear()`).
-- Only transform / opacity / clip-path animate; the one exception is the `<details>` height.
-- No infinite decorative loops: the status dot pings 3×, carets blink a few times then stop.
-- `prefers-reduced-motion` shows every final state and disables spotlight + sparks.
+- One rAF loop in `script.js`; it pauses when the tab is hidden. Expensive parts only run when visible.
+- Work section is pinned and scrolls sideways at ≥1000px wide (with motion allowed); otherwise it stacks vertically.
+- `prefers-reduced-motion`: no boot, no custom cursor, no horizontal pin, no word reveal, and the shader renders one still frame.
 
 ## Résumé
-- Source: `resume/resume.html` (IBM Plex Sans body + JetBrains Mono headings, A4).
-- Export to `resume.pdf` with headless Chromium `--print-to-pdf --no-pdf-header-footer`.
+- Source: `resume/resume.html` (IBM Plex Sans + JetBrains Mono, A4) → `resume.pdf` via headless Chromium.
