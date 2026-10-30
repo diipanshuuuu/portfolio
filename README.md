@@ -1,10 +1,10 @@
-# dipanshu singh — ideas, compiled
+# dipanshu singh — still exploring
 
 > **Live site**: [https://dipannshuuuu.web.app](https://dipannshuuuu.web.app)
 
 Personal portfolio of **Dipanshu Singh**, a first-year B.Tech CSE (AI & ML) student at Newton School of Technology who builds open-source tools, web interfaces and local AI.
 
-It's a single, minimal page written in plain HTML and CSS with a little vanilla JavaScript: no frameworks, no dependencies, no build step. It looks quiet, and has a few small surprises for people who poke around.
+It's a single, minimal page written in plain HTML and CSS with a little vanilla JavaScript: no frameworks, no dependencies, no build step. It looks quiet, and has a few small surprises for people who poke around. The copy reads like an explorer's field notes: where i am, what i carry, the trail so far.
 
 ## Features
 
@@ -15,9 +15,13 @@ It's a single, minimal page written in plain HTML and CSS with a little vanilla 
   - Section titles and links scramble for a beat on hover.
   - The tagline types itself, and a live clock shows the time in Ayodhya.
   - Clicking anywhere throws sparks.
-- **Projects.** Shown as an accordion of native `<details>` elements, so only one is open at a time. Each has a mini-terminal preview; Kavach's swaps real values for placeholders the way the extension does.
+- **Projects.** Clean one-line rows; hovering one slides it open with its preview, description and links (click or keyboard also toggle it, and on touch screens you tap). Previews load the first time a row opens, and each one stays up to date on its own:
+  - **Websites** are embedded live and scaled down, so a new deploy shows up immediately.
+  - **Apps** pull their screenshots straight from their GitHub repo, so replacing a screenshot there updates the portfolio. No redeploy needed. With several screenshots, they crossfade one at a time, with dots to jump between them.
+  - If neither is available, a small animated demo is shown.
+- **Live signal from Discord.** A plain "now ›" line under the tagline shows the most interesting thing happening on my Discord: the song I'm listening to (with a small equalizer), what I'm doing ("coding in VS Code · 47m"), or just "idle on discord". It rotates when there's more than one. It uses [Lanyard](https://github.com/Phineas/lanyard): one REST call to paint immediately, then a WebSocket that updates the moment my status changes. It needs my account to stay in the Lanyard Discord server; if Lanyard is unreachable, the card stays hidden.
 - **Secrets:**
-  - Press `/` (or use the footer button) to open a hidden shell. Try `help`, `neofetch`, `accent pink` or `sudo hire-me`.
+  - Press `/` (or click "off the map" in the footer) to open a hidden shell. Try `help`, `map`, `goto trail`, `compass`, `neofetch` or `sudo hire-me`.
   - The Konami code cycles the accent color.
 - **Accessible:**
   - Skip link, visible focus and keyboard support.
@@ -55,6 +59,11 @@ Then visit http://localhost:8000.
 - **Content:** everything is in `index.html`, and each section is marked with a comment such as `===== Today =====`.
 - **Tagline:** after changing the text, set `--chars` on the `.typed` element to the new character count so the typing animation lines up.
 - **Projects:** copy a `<details class="project" name="projects">` block. Keeping the shared `name` means only one project is open at a time.
+- **Project previews:** each `.preview` reads one of three attributes.
+  - `data-live`: a URL to embed live.
+  - `data-shots`: image URLs, separated by spaces.
+  - `data-override`: an image that wins over the shots if it exists. It's set to `preview.png` in each repo, so you can add or replace a screenshot there at any time.
+- **Discord:** the user ID is `DISCORD_ID` near the presence code in `script.js`.
 - **Shell commands:** they live in the `commands` object in `script.js`.
 - **Colors, type and motion:** the tokens are at the top of `styles.css`, with the light theme in `:root[data-theme="light"]` and the extra accents in `[data-accent]` blocks.
 

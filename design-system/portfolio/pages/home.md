@@ -15,6 +15,19 @@ Don't bring that back unless asked.
 - Single centered column, `max-width: 42rem`, lowercase section headings.
 - Sections: header → today → past & skills → journey → personal projects → currently exploring → links.
 - Projects are native `<details name="projects">`, first one open.
+- Each project body has a 16:10 `.preview` on top, then the description.
+  - The preview loads only when its project opens.
+  - Order of preference: `data-live` (scaled iframe of the live site, inert) → `data-override` (`preview.png` in the repo) → `data-shots` (screenshots from the repo) → the animated demo tile.
+- Hero tagline: "exploring." (typed; `--chars` must equal its length).
+- Several screenshots show as a one-at-a-time crossfade (3.5s, pauses on hover, dots to jump; no autoplay with reduced motion).
+
+## Voice: an explorer's field notes
+- Title: "dipanshu singh — still exploring".
+- Sections: where i am · what i carry · the trail so far · built along the way · on the horizon · find me.
+- Clock reads like a map position: `26.79°n 82.20°e · 19:12 ist`.
+- Shell: "you wandered off the map", plus `where`, `map`, `goto <place>`, `compass`, and the footer hint "off the map".
+- Keep facts plain: project descriptions, "open to work" and the résumé stay literal and professional.
+- Avoid the old "ideas, compiled" wording.
 
 ## Color
 | Token | Dark (default) | Light |

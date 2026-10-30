@@ -116,7 +116,7 @@
 		konamiAt = 0;
 		var next = ACCENTS[(ACCENTS.indexOf(currentAccent()) + 1) % ACCENTS.length];
 		setAccent(next);
-		toast("secret unlocked · accent → " + next);
+		toast("new territory unlocked · accent → " + next);
 		celebrate(innerWidth / 2, innerHeight / 2);
 	});
 
@@ -130,6 +130,185 @@
 		};
 		tickClock();
 		setInterval(tickClock, 15000);
+	}
+
+	/* ---------- Live signal: Discord presence via Lanyard (api.lanyard.rest) ---------- */
+	var DISCORD_ID = "1287480096806011007";
+	var presence = null; // latest Lanyard data, also read by the shell's `discord` command
+	// One element per placement; <html data-presence="now|clock|dot"> picks which one shows
+	var presenceEls = Array.prototype.slice.call(document.querySelectorAll(".presence"));
+	var presenceEl = presenceEls[0];
+
+	var STATUS_TEXT = { online: "online", idle: "idle", dnd: "do not disturb", offline: "offline" };
+	var ACTIVITY_KIND = { 0: "playing", 1: "streaming", 3: "watching", 5: "competing in" };
+
+	function currentActivity(data) {
+		return (data.activities || []).filter(function (a) {
+			return a.type !== 2 && a.type !== 4;
+		})[0];
+	}
+
+	function minutesSince(start) {
+		var mins = Math.floor((Date.now() - start) / 60000);
+		return mins < 60 ? mins + "m" : Math.floor(mins / 60) + "h " + (mins % 60) + "m";
+	}
+
+	if (presenceEl) {
+		// Single-line placements rotate through items; the name dot lists them all in its popover
+		var presenceLines = presenceEls
+			.map(function (el) {
+				return el.querySelector(".presence-line");
+			})
+			.filter(Boolean);
+		var presenceLists = presenceEls
+			.map(function (el) {
+				return el.querySelector(".presence-list");
+			})
+			.filter(Boolean);
+		var presenceItems = [];
+		var presenceAt = 0;
+
+		// Each item is [label, highlighted bit, trailing text, isMusic]
+		var buildItems = function (data) {
+			var items = [];
+			var spotify = data.listening_to_spotify && data.spotify;
+			var activity = currentActivity(data);
+			var custom = (data.activities || []).filter(function (a) {
+				return a.type === 4 && a.state;
+			})[0];
+			if (spotify) items.push(["listening to ", spotify.song, " — " + spotify.artist, true]);
+			if (activity) {
+				var kind = activity.name === "Visual Studio Code" || activity.name === "Code" ? "coding in " : (ACTIVITY_KIND[activity.type] || "on") + " ";
+				var since = activity.timestamps && activity.timestamps.start ? " · " + minutesSince(activity.timestamps.start) : "";
+				items.push([kind, activity.name, since, false]);
+			}
+			if (custom) items.push(["“", custom.state, "”", false]);
+			if (!items.length) {
+				var status = data.discord_status || "offline";
+				items.push(status === "offline" ? ["offline · ", "probably exploring irl", "", false] : [STATUS_TEXT[status] + " on ", "discord", "", false]);
+			}
+			return items;
+		};
+
+		var fill = function (line, item) {
+			line.textContent = "";
+			line.appendChild(document.createTextNode(item[0]));
+			var strong = document.createElement("b");
+			strong.textContent = item[1];
+			line.appendChild(strong);
+			line.appendChild(document.createTextNode(item[2]));
+		};
+
+		var paint = function (item) {
+			presenceLines.forEach(function (line) {
+				fill(line, item);
+				var eq = line.parentNode.querySelector(".presence-eq");
+				if (eq) eq.hidden = !item[3];
+			});
+		};
+
+		var paintLists = function (data) {
+			var status = data.discord_status || "offline";
+			presenceLists.forEach(function (list) {
+				list.textContent = "";
+				var head = document.createElement("li");
+				head.className = "presence-list-status";
+				head.textContent = STATUS_TEXT[status] + " on discord";
+				list.appendChild(head);
+				presenceItems.forEach(function (item) {
+					if (item[1] === "discord") return; // already said by the status line
+					var li = document.createElement("li");
+					fill(li, item);
+					list.appendChild(li);
+				});
+			});
+		};
+
+		var renderPresence = function (data) {
+			if (!data || !data.discord_user) return;
+			presence = data;
+			var user = data.discord_user;
+			var status = data.discord_status || "offline";
+			presenceEls.forEach(function (el) {
+				el.title = (user.global_name || user.username) + " on discord: " + STATUS_TEXT[status];
+				el.dataset.status = status;
+			});
+			presenceItems = buildItems(data);
+			presenceAt = Math.min(presenceAt, presenceItems.length - 1);
+			paint(presenceItems[presenceAt]);
+			paintLists(data);
+			presenceEls.forEach(function (el) {
+				var wrapper = el.closest("[hidden]");
+				if (wrapper) wrapper.hidden = false;
+			});
+		};
+
+		// With more than one thing going on, rotate gently between them
+		setInterval(function () {
+			if (presenceItems.length < 2 || document.hidden) return;
+			presenceAt = (presenceAt + 1) % presenceItems.length;
+			if (reduceMotion) {
+				paint(presenceItems[presenceAt]);
+				return;
+			}
+			presenceLines.forEach(function (line) {
+				line.classList.add("is-swapping");
+			});
+			setTimeout(function () {
+				paint(presenceItems[presenceAt]);
+				presenceLines.forEach(function (line) {
+					line.classList.remove("is-swapping");
+				});
+			}, 280);
+		}, 4500);
+
+		// Keep "47m" fresh
+		setInterval(function () {
+			if (presence) presenceItems = buildItems(presence);
+		}, 30000);
+
+		if ("WebSocket" in window) {
+			// Paint straight away from the REST API, then stay live over the socket
+			fetch("https://api.lanyard.rest/v1/users/" + DISCORD_ID)
+				.then(function (r) {
+					return r.json();
+				})
+				.then(function (json) {
+					if (json && json.success) renderPresence(json.data);
+				})
+				.catch(function () {});
+
+			var socket;
+			var heartbeat = 0;
+			var retries = 0;
+
+			var connect = function () {
+				socket = new WebSocket("wss://api.lanyard.rest/socket");
+				socket.addEventListener("message", function (e) {
+					var msg;
+					try {
+						msg = JSON.parse(e.data);
+					} catch (err) {
+						return;
+					}
+					if (msg.op === 1) {
+						clearInterval(heartbeat);
+						heartbeat = setInterval(function () {
+							if (socket.readyState === 1) socket.send(JSON.stringify({ op: 3 }));
+						}, msg.d.heartbeat_interval);
+						socket.send(JSON.stringify({ op: 2, d: { subscribe_to_id: DISCORD_ID } }));
+					} else if (msg.op === 0 && (msg.t === "INIT_STATE" || msg.t === "PRESENCE_UPDATE")) {
+						retries = 0;
+						renderPresence(msg.d);
+					}
+				});
+				socket.addEventListener("close", function () {
+					clearInterval(heartbeat);
+					setTimeout(connect, Math.min(30000, 1000 * Math.pow(2, retries++)));
+				});
+			};
+			connect();
+		}
 	}
 
 	/* ---------- Hidden shell: press / to open ---------- */
@@ -152,7 +331,8 @@
 			syscleanx: "https://github.com/htmnsrc/SysCleanX",
 			github: "https://github.com/diipanshuuuu",
 			linkedin: "https://www.linkedin.com/in/dipanshu-singh-86b2ba444/",
-			resume: "resume.pdf"
+			resume: "resume.pdf",
+			discord: "https://discord.com/users/" + DISCORD_ID
 		};
 
 		var print = function (text, className) {
@@ -204,7 +384,7 @@
 					var copied = navigator.clipboard ? navigator.clipboard.writeText(EMAIL) : Promise.reject();
 					copied.then(
 						function () {
-							print("→ " + EMAIL + " copied to your clipboard. let's build something.", "acc");
+							print("→ " + EMAIL + " copied to your clipboard. let's go explore something together.", "acc");
 							scrollShell();
 						},
 						function () {
@@ -220,27 +400,47 @@
 			});
 		};
 
+		// Sections of the page, as places you can travel to from the shell
+		var WAYPOINTS = [
+			["where", "today-title", "where i am"],
+			["kit", "skills-title", "what i carry"],
+			["trail", "journey-title", "the trail so far"],
+			["built", "projects-title", "built along the way"],
+			["horizon", "exploring-title", "on the horizon"],
+			["find", "links-title", "find me"]
+		];
+
+		var findWaypoint = function (key) {
+			return WAYPOINTS.filter(function (w) {
+				return w[0] === key;
+			})[0];
+		};
+
 		var commands = {
 			help: function () {
 				printHTML(
-					"<pre><b>about</b>         who is this\n" +
-						"<b>projects</b>      things i've built (open &lt;name&gt; to visit)\n" +
-						"<b>skills</b>        the toolbox\n" +
-						"<b>contact</b>       copy my email\n" +
+					"<pre><b>about</b>         who's exploring\n" +
+						"<b>projects</b>      built along the way (open &lt;name&gt; to visit)\n" +
+						"<b>skills</b>        what i carry\n" +
+						"<b>where</b>         current position\n" +
+						"<b>map</b>           waypoints on this page (goto &lt;place&gt;)\n" +
+						"<b>compass</b>       pick a heading\n" +
+						"<b>contact</b>       send a signal (copies my email)\n" +
+						"<b>discord</b>       live signal from discord\n" +
 						"<b>neofetch</b>      system info, obviously\n" +
-						"<b>theme</b>         flip light / dark\n" +
+						"<b>theme</b>         day / night\n" +
 						"<b>accent</b>        green · orange · blue · pink\n" +
 						"<b>clear</b>         wipe the screen\n" +
-						"<b>exit</b>          back to the page\n" +
+						"<b>exit</b>          back to the trail\n" +
 						"<b>sudo hire-me</b>  you know you want to</pre>"
 				);
 			},
 			about: function () {
 				print("Dipanshu Singh: first-year B.Tech CSE (AI & ML) at Newton School of Technology, based in Ayodhya.");
-				print("into open source, software dev, and self-hosting / training AI models with Ollama & Hugging Face.", "dim");
+				print("exploring open source, software dev, and self-hosting / training AI models with Ollama & Hugging Face.", "dim");
 			},
 			whoami: function () {
-				print("guest. but you could be my next teammate → sudo hire-me", "dim");
+				print("a fellow explorer. could be my next teammate → sudo hire-me", "dim");
 			},
 			projects: function () {
 				print("kavach      local privacy shield for ai chats");
@@ -250,14 +450,14 @@
 			},
 			skills: function () {
 				print("languages  python · javascript · c · c++ · rust · bash");
-				print("web        html · css · javascript · responsive ui");
+				print("web        html · css · javascript");
 				print("ai / ml    ollama · hugging face · local llms · model training");
-				print("tools      git · github · vs code · vercel");
+				print("tools      git · github · linux · vim · vs code · firebase · vercel");
 			},
 			open: function (args) {
 				var key = (args[0] || "").toLowerCase();
 				if (!LINKS[key]) {
-					print("usage: open kavach | nst-sdc | syscleanx | github | linkedin | resume", "err");
+					print("usage: open kavach | nst-sdc | syscleanx | github | linkedin | discord | resume", "err");
 					return;
 				}
 				print("opening " + key + " ↗", "acc");
@@ -279,6 +479,18 @@
 					}
 				);
 			},
+			discord: function () {
+				if (!presence) {
+					print("no signal from discord right now. try: open discord", "dim");
+					return;
+				}
+				var user = presence.discord_user;
+				print((user.global_name || user.username) + " (@" + user.username + ") · " + (STATUS_TEXT[presence.discord_status] || "offline"), "acc");
+				var activity = currentActivity(presence);
+				if (activity) print((ACTIVITY_KIND[activity.type] || "doing") + " " + activity.name + (activity.details ? " · " + activity.details : ""));
+				if (presence.listening_to_spotify && presence.spotify) print("listening to " + presence.spotify.song + " by " + presence.spotify.artist);
+				if (!activity && !presence.listening_to_spotify) print("nothing running. probably exploring.", "dim");
+			},
 			github: function () {
 				commands.open(["github"]);
 			},
@@ -292,14 +504,44 @@
 				printHTML(
 					'<div class="neo"><pre class="acc">     _\n  __| |\n / _` |\n| (_| | _\n \\__,_|(_)</pre>' +
 						"<pre><b>guest</b>@<b>dipanshu</b>\n---------------\n" +
-						"<b>os</b>      ideas-compiler 26.10\n" +
-						"<b>host</b>    ayodhya, in\n" +
+						"<b>os</b>      compass 26.10 (still exploring)\n" +
+						"<b>loc</b>     26.79°n 82.20°e, ayodhya\n" +
 						"<b>kernel</b>  b.tech-cse-ai-ml (year 1)\n" +
-						"<b>uptime</b>  building since 2025\n" +
+						"<b>uptime</b>  exploring since 2025\n" +
 						"<b>shell</b>   vanilla html, css & js\n" +
 						"<b>status</b>  open to work\n" +
 						'<span class="neo-colors"><i style="background:#22c55e"></i><i style="background:#fb923c"></i><i style="background:#38bdf8"></i><i style="background:#f472b6"></i><i style="background:#e0e2e8"></i></span></pre></div>'
 				);
+			},
+			where: function () {
+				var time = clockEl ? clockEl.textContent : "";
+				print("26.79°n 82.20°e · ayodhya, in" + (time ? " · " + time : ""), "acc");
+			},
+			map: function () {
+				print("waypoints on this page:", "dim");
+				WAYPOINTS.forEach(function (w, i) {
+					print("  0" + (i + 1) + "  " + (w[2] + "                    ").slice(0, 20) + " goto " + w[0]);
+				});
+			},
+			goto: function (args) {
+				var stop = findWaypoint((args[0] || "").toLowerCase());
+				if (!stop) {
+					print(
+						"usage: goto " +
+							WAYPOINTS.map(function (w) {
+								return w[0];
+							}).join(" | "),
+						"err"
+					);
+					return;
+				}
+				closeShell();
+				document.getElementById(stop[1]).scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+			},
+			compass: function () {
+				var headings = ["open source", "local ai", "rust", "the next hackathon", "wherever the next bug is"];
+				printHTML("<pre>     n\n     │\n w ──┼── e\n     │\n     s</pre>");
+				print("heading: " + headings[(Math.random() * headings.length) | 0], "acc");
 			},
 			theme: function () {
 				toggle.click();
@@ -324,7 +566,7 @@
 			},
 			rm: function (args) {
 				if (args.join(" ").indexOf("-rf") === -1) {
-					print("rm: refusing to delete ideas", "err");
+					print("rm: refusing to erase the map", "err");
 					return;
 				}
 				print("nice try.", "err");
@@ -333,21 +575,25 @@
 				shellWindow.classList.add("is-shaking");
 			},
 			ls: function () {
-				print("projects/   skills.txt   resume.pdf   ideas/   .secrets");
+				print("projects/   kit.txt   map.txt   resume.pdf   uncharted/   .secrets");
 			},
 			cat: function (args) {
 				var file = (args[0] || "").toLowerCase();
-				if (file === "skills.txt") commands.skills();
+				if (file === "kit.txt" || file === "skills.txt") commands.skills();
+				else if (file === "map.txt") commands.map();
 				else if (file === ".secrets") print("↑ ↑ ↓ ↓ ← → ← → b a (try it on the page)", "acc");
 				else if (file === "resume.pdf") print("binary file. try: resume", "dim");
-				else if (file.indexOf("ideas") === 0) print("cat: ideas/: too many to list", "err");
+				else if (file.indexOf("uncharted") === 0) print("cat: uncharted/: nobody's been there yet", "err");
+				else if (file.indexOf("projects") === 0) commands.projects();
 				else print("cat: " + (args[0] || "") + ": no such file", "err");
 			},
-			cd: function () {
-				print("you're already home.", "dim");
+			cd: function (args) {
+				var key = (args[0] || "").toLowerCase();
+				if (findWaypoint(key)) commands.goto([key]);
+				else print("you're already at base camp.", "dim");
 			},
 			pwd: function () {
-				print("/home/guest/dipanshu");
+				print("/base-camp/ayodhya");
 			},
 			date: function () {
 				print(new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "full", timeStyle: "short" }) + " (ist)");
@@ -373,7 +619,7 @@
 				closeShell();
 			}
 		};
-		var ALIASES = { "?": "help", man: "help", work: "projects", hire: "hire-me", email: "contact", cls: "clear", quit: "exit" };
+		var ALIASES = { "?": "help", man: "help", work: "projects", kit: "skills", whereami: "where", waypoints: "map", go: "goto", hire: "hire-me", email: "contact", cls: "clear", quit: "exit" };
 
 		var run = function (raw) {
 			var line = raw.trim();
@@ -453,6 +699,192 @@
 		});
 	}
 
+	/* ---------- Project previews: the live site, screenshots straight from the repo, or the demo ---------- */
+	function probe(url) {
+		return new Promise(function (resolve) {
+			var img = new Image();
+			img.decoding = "async";
+			img.onload = function () {
+				resolve(img);
+			};
+			img.onerror = function () {
+				resolve(null);
+			};
+			img.src = url;
+		});
+	}
+
+	function setPreviewTag(preview, text, state) {
+		var tag = preview.querySelector(".preview-tag");
+		if (!tag) return;
+		tag.classList.toggle("is-live", state === "live");
+		tag.classList.toggle("is-synced", state === "synced");
+		tag.lastChild.nodeValue = text;
+	}
+
+	// Several screenshots: one at a time, crossfading, with dots to jump between them.
+	// The active dot fills like a progress bar; when it finishes (CSS animationend), the next shot slides in.
+	function startSlides(preview, strip, imgs) {
+		var at = 0;
+		var dots = document.createElement("div");
+		dots.className = "preview-dots";
+
+		var buttons = imgs.map(function (img, i) {
+			var button = document.createElement("button");
+			button.type = "button";
+			button.setAttribute("aria-label", "Show screenshot " + (i + 1) + " of " + imgs.length);
+			button.addEventListener("click", function () {
+				show(i);
+			});
+			dots.appendChild(button);
+			return button;
+		});
+
+		function show(i) {
+			imgs[at].classList.remove("is-active");
+			at = (i + imgs.length) % imgs.length;
+			imgs[at].classList.add("is-active");
+			buttons.forEach(function (button, j) {
+				button.setAttribute("aria-current", String(j === at));
+			});
+		}
+
+		dots.addEventListener("animationend", function (e) {
+			if (e.animationName === "slide-timer") show(at + 1);
+		});
+
+		// Hold still (bar and drift freeze) while someone is looking
+		var pause = function (on) {
+			preview.classList.toggle("is-paused", on);
+		};
+		preview.addEventListener("pointerenter", function () {
+			pause(true);
+		});
+		preview.addEventListener("pointerleave", function () {
+			pause(false);
+		});
+		dots.addEventListener("focusin", function () {
+			pause(true);
+		});
+		dots.addEventListener("focusout", function () {
+			pause(false);
+		});
+
+		strip.classList.add("is-slides");
+		preview.appendChild(dots);
+		show(0);
+	}
+
+	function loadPreview(preview) {
+		if (preview.dataset.loaded) return;
+		preview.dataset.loaded = "1";
+
+		// Websites: embed the real thing, rendered at desktop size and scaled to fit
+		if (preview.dataset.live) {
+			var wrap = document.createElement("div");
+			var frame = document.createElement("iframe");
+			wrap.className = "preview-live";
+			wrap.inert = true;
+			frame.title = preview.dataset.alt || "Live preview";
+			frame.tabIndex = -1;
+			frame.referrerPolicy = "no-referrer";
+			frame.setAttribute("sandbox", "allow-scripts allow-same-origin");
+			frame.addEventListener("load", function () {
+				wrap.classList.add("is-loaded");
+				setPreviewTag(preview, "live", "live");
+			});
+			frame.src = preview.dataset.live;
+			wrap.appendChild(frame);
+			preview.appendChild(wrap);
+
+			var fit = function () {
+				wrap.style.setProperty("--s", (preview.clientWidth / 1280).toFixed(4));
+			};
+			fit();
+			if ("ResizeObserver" in window) new ResizeObserver(fit).observe(preview);
+			return;
+		}
+
+		// Apps: a preview.png in the repo wins, then the listed screenshots; if none load, the demo stays
+		var shots = (preview.dataset.shots || "").split(/\s+/).filter(Boolean);
+		var first = preview.dataset.override ? probe(preview.dataset.override) : Promise.resolve(null);
+
+		first
+			.then(function (img) {
+				if (img) return [img];
+				return Promise.all(shots.map(probe)).then(function (imgs) {
+					return imgs.filter(Boolean);
+				});
+			})
+			.then(function (imgs) {
+				if (!imgs.length) return;
+				var strip = document.createElement("div");
+				strip.className = "preview-shots" + (imgs.length === 1 ? " is-single" : "");
+				imgs.forEach(function (img, i) {
+					img.alt = (preview.dataset.alt || "Screenshot") + (imgs.length > 1 ? " " + (i + 1) + " of " + imgs.length : "");
+					strip.appendChild(img);
+				});
+				preview.appendChild(strip);
+				requestAnimationFrame(function () {
+					strip.classList.add("is-loaded");
+				});
+				if (imgs.length > 1) startSlides(preview, strip, imgs);
+				setPreviewTag(preview, "synced from github", "synced");
+			});
+	}
+
+	// Only fetch a preview once its project is opened
+	document.querySelectorAll(".preview").forEach(function (preview) {
+		var project = preview.closest("details");
+		if (!project || project.open) {
+			loadPreview(preview);
+			return;
+		}
+		project.addEventListener("toggle", function () {
+			if (project.open) loadPreview(preview);
+		});
+	});
+
+	/* ---------- Projects open on hover (desktop); click and keyboard still toggle ---------- */
+	// Rule: never collapse anything above the cursor, so rows can't jump out from under it.
+	// Hovering a row opens it and closes only the rows below; leaving the list closes them all.
+	if (finePointer) {
+		var projectList = document.querySelector(".projects");
+		var projects = Array.prototype.slice.call(document.querySelectorAll(".project"));
+		var hoverTimer = 0;
+		var closeTimer = 0;
+
+		// Manage exclusivity by hand: details[name] would also collapse the rows above
+		projects.forEach(function (project) {
+			project.removeAttribute("name");
+		});
+
+		projects.forEach(function (project, i) {
+			project.addEventListener("pointerenter", function () {
+				clearTimeout(closeTimer);
+				clearTimeout(hoverTimer);
+				// A short pause so just sweeping across the list doesn't flap rows open
+				hoverTimer = setTimeout(function () {
+					project.open = true;
+					projects.slice(i + 1).forEach(function (below) {
+						below.open = false;
+					});
+				}, 140);
+			});
+		});
+
+		if (projectList) {
+			projectList.addEventListener("pointerleave", function () {
+				clearTimeout(hoverTimer);
+				closeTimer = setTimeout(function () {
+					projects.forEach(function (project) {
+						project.open = false;
+					});
+				}, 350);
+			});
+		}
+	}
+
 	/* ---------- Scroll reveal fallback (when CSS scroll timelines are unsupported) ---------- */
 	var reveals = document.querySelectorAll(".reveal");
 
@@ -480,10 +912,10 @@
 	/* ---------- Tab title + a hello for whoever opens devtools ---------- */
 	var baseTitle = document.title;
 	document.addEventListener("visibilitychange", function () {
-		document.title = document.hidden ? "come back, ideas still compiling…" : baseTitle;
+		document.title = document.hidden ? "come back, there's more to explore…" : baseTitle;
 	});
-	console.log("%c d. %c ideas, compiled ", "background:#22c55e;color:#08090a;font:700 16px monospace;padding:2px 6px", "font:13px monospace");
-	console.log("you opened devtools, so you're my kind of person. press / on the page, or say hi → " + EMAIL);
+	console.log("%c d. %c still exploring ", "background:#22c55e;color:#08090a;font:700 16px monospace;padding:2px 6px", "font:13px monospace");
+	console.log("you opened devtools, so you like exploring too. press / on the page to go off the map, or say hi → " + EMAIL);
 
 	if (reduceMotion) return;
 
