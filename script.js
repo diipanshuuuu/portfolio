@@ -5,7 +5,7 @@
 
 	var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 	var finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-	var EMAIL = "diipupc@gmail.com";
+	var EMAIL = "diipanshuuuu@gmail.com";
 
 	// Replaced by the sparks section below when motion is allowed
 	var celebrate = function () {};

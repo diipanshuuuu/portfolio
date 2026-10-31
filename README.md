@@ -89,4 +89,4 @@ The layout is inspired by [amxnn05/Portfolio](https://github.com/amxnn05/Portfol
 
 ## Contact
 
-[GitHub](https://github.com/diipanshuuuu) · [GitHub (personal)](https://github.com/htmnsrc) · [LinkedIn](https://www.linkedin.com/in/dipanshu-singh-86b2ba444/) · diipupc@gmail.com
+[GitHub](https://github.com/diipanshuuuu) · [GitHub (personal)](https://github.com/htmnsrc) · [LinkedIn](https://www.linkedin.com/in/dipanshu-singh-86b2ba444/) · diipanshuuuu@gmail.com
