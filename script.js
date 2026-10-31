@@ -846,43 +846,83 @@
 	});
 
 	/* ---------- Projects open on hover (desktop); click and keyboard still toggle ---------- */
-	// Rule: never collapse anything above the cursor, so rows can't jump out from under it.
-	// Hovering a row opens it and closes only the rows below; leaving the list closes them all.
+	// One project open at a time. Hovering a row opens it, holds that row still while the others
+	// collapse, then glides the page so the open project sits near the top with the rest reachable.
+	// Nothing closes when the cursor leaves; rows only change when you hover another or click.
 	if (finePointer) {
-		var projectList = document.querySelector(".projects");
 		var projects = Array.prototype.slice.call(document.querySelectorAll(".project"));
 		var hoverTimer = 0;
-		var closeTimer = 0;
+		var userMoved = true;
+		var lastX = -1;
+		var lastY = -1;
 
-		// Manage exclusivity by hand: details[name] would also collapse the rows above
-		projects.forEach(function (project) {
-			project.removeAttribute("name");
-		});
-
-		projects.forEach(function (project, i) {
-			project.addEventListener("pointerenter", function () {
-				clearTimeout(closeTimer);
+		// Driven by real pointer movement only: rows sliding under a still cursor
+		// (while the page glides) never open themselves
+		var candidate = null;
+		window.addEventListener(
+			"pointermove",
+			function (e) {
+				if (e.clientX === lastX && e.clientY === lastY) return;
+				lastX = e.clientX;
+				lastY = e.clientY;
+				userMoved = true;
+				var project = e.target.closest ? e.target.closest(".project") : null;
+				if (project === candidate) return;
+				candidate = project;
 				clearTimeout(hoverTimer);
-				// A short pause so just sweeping across the list doesn't flap rows open
+				if (!project || project.open) return;
+				// A short pause so sweeping across the list doesn't flap rows open
 				hoverTimer = setTimeout(function () {
-					project.open = true;
-					projects.slice(i + 1).forEach(function (below) {
-						below.open = false;
-					});
-				}, 140);
+					if (candidate === project && userMoved) openProject(project);
+				}, 160);
+			},
+			{ passive: true }
+		);
+
+		// Layout position (offsetTop ignores transforms from the scroll-reveal animation)
+		var pageTop = function (el) {
+			var top = 0;
+			for (var node = el; node; node = node.offsetParent) top += node.offsetTop;
+			return top;
+		};
+
+		var openProject = function (project) {
+			var summary = project.querySelector("summary");
+			var onScreen = pageTop(summary) - window.scrollY;
+			userMoved = false;
+
+			projects.forEach(function (other) {
+				other.open = other === project;
+			});
+
+			// Hold the hovered row still while the rows around it open and close
+			var until = performance.now() + 420;
+			(function hold() {
+				var target = pageTop(summary) - onScreen;
+				if (Math.abs(target - window.scrollY) > 0.5) window.scrollTo({ top: target, behavior: "instant" });
+				if (performance.now() < until) {
+					requestAnimationFrame(hold);
+					return;
+				}
+				// Then glide so the open project starts near the top of the screen
+				var goal = pageTop(summary) - 72;
+				if (Math.abs(goal - window.scrollY) > 24) {
+					userMoved = false;
+					window.scrollTo({ top: goal, behavior: reduceMotion ? "auto" : "smooth" });
+				}
+			})();
+		};
+
+		projects.forEach(function (project) {
+			project.removeAttribute("name"); // exclusivity is handled above, without layout jumps
+			// Clicking follows the same one-at-a-time rule
+			project.querySelector("summary").addEventListener("click", function (e) {
+				e.preventDefault();
+				clearTimeout(hoverTimer);
+				if (project.open) project.open = false;
+				else openProject(project);
 			});
 		});
-
-		if (projectList) {
-			projectList.addEventListener("pointerleave", function () {
-				clearTimeout(hoverTimer);
-				closeTimer = setTimeout(function () {
-					projects.forEach(function (project) {
-						project.open = false;
-					});
-				}, 350);
-			});
-		}
 	}
 
 	/* ---------- Scroll reveal fallback (when CSS scroll timelines are unsupported) ---------- */

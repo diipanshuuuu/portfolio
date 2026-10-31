@@ -15,7 +15,7 @@ It's a single, minimal page written in plain HTML and CSS with a little vanilla 
   - Section titles and links scramble for a beat on hover.
   - The tagline types itself, and a live clock shows the time in Ayodhya.
   - Clicking anywhere throws sparks.
-- **Projects.** Clean one-line rows; hovering one slides it open with its preview, description and links (click or keyboard also toggle it, and on touch screens you tap). Previews load the first time a row opens, and each one stays up to date on its own:
+- **Projects.** Clean one-line rows, one open at a time. Hovering a row opens it with its preview, description and links, and the page glides so it sits near the top with the neighbouring rows still in reach. It stays open until you hover another row or click it shut (keyboard and touch work the same way). Previews load the first time a row opens, and each one stays up to date on its own:
   - **Websites** are embedded live and scaled down, so a new deploy shows up immediately.
   - **Apps** pull their screenshots straight from their GitHub repo, so replacing a screenshot there updates the portfolio. No redeploy needed. With several screenshots, they crossfade one at a time, with dots to jump between them.
   - If neither is available, a small animated demo is shown.
