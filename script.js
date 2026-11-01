@@ -444,8 +444,8 @@
 			},
 			projects: function () {
 				print("kavach      local privacy shield for ai chats");
-				print("nst-sdc     vanilla redesign of my college's dev club site");
-				print("syscleanx   windows pc cleaner + app uninstaller");
+				print("nst-sdc     vanilla redesign of my college's dev club site, live github data");
+				print("syscleanx   fast, safety-first windows cleaner + uninstaller in rust");
 				print("type: open <name>", "dim");
 			},
 			skills: function () {
@@ -724,24 +724,17 @@
 
 	// Several screenshots: one at a time, crossfading, with dots to jump between them.
 	// The active dot fills like a progress bar; when it finishes (CSS animationend), the next shot slides in.
-	function startSlides(preview, strip, imgs) {
+	// Screenshots can arrive one by one: `add` slots each into the slideshow as it loads.
+	function startSlides(preview, strip) {
+		var imgs = [];
+		var buttons = [];
 		var at = 0;
 		var dots = document.createElement("div");
 		dots.className = "preview-dots";
-
-		var buttons = imgs.map(function (img, i) {
-			var button = document.createElement("button");
-			button.type = "button";
-			button.setAttribute("aria-label", "Show screenshot " + (i + 1) + " of " + imgs.length);
-			button.addEventListener("click", function () {
-				show(i);
-			});
-			dots.appendChild(button);
-			return button;
-		});
+		dots.hidden = true;
 
 		function show(i) {
-			imgs[at].classList.remove("is-active");
+			if (imgs[at]) imgs[at].classList.remove("is-active");
 			at = (i + imgs.length) % imgs.length;
 			imgs[at].classList.add("is-active");
 			buttons.forEach(function (button, j) {
@@ -772,7 +765,27 @@
 
 		strip.classList.add("is-slides");
 		preview.appendChild(dots);
-		show(0);
+
+		return {
+			add: function (img) {
+				var i = imgs.length;
+				imgs.push(img);
+				strip.appendChild(img);
+				var button = document.createElement("button");
+				button.type = "button";
+				button.addEventListener("click", function () {
+					show(i);
+				});
+				dots.appendChild(button);
+				buttons.push(button);
+				buttons.forEach(function (b, j) {
+					b.setAttribute("aria-label", "Show screenshot " + (j + 1) + " of " + imgs.length);
+				});
+				// Dots (and the countdown) only make sense once there are two
+				dots.hidden = imgs.length < 2;
+				if (i === 0) show(0);
+			}
+		};
 	}
 
 	function loadPreview(preview) {
@@ -805,32 +818,42 @@
 			return;
 		}
 
-		// Apps: a preview.png in the repo wins, then the listed screenshots; if none load, the demo stays
+		// Apps: a preview.png in the repo wins, then the listed screenshots; if none load, the demo stays.
+		// Everything is requested at once, and each screenshot appears as soon as it arrives.
 		var shots = (preview.dataset.shots || "").split(/\s+/).filter(Boolean);
 		var first = preview.dataset.override ? probe(preview.dataset.override) : Promise.resolve(null);
+		var pending = shots.map(probe);
+		var label = preview.dataset.alt || "Screenshot";
 
-		first
-			.then(function (img) {
-				if (img) return [img];
-				return Promise.all(shots.map(probe)).then(function (imgs) {
-					return imgs.filter(Boolean);
-				});
-			})
-			.then(function (imgs) {
-				if (!imgs.length) return;
-				var strip = document.createElement("div");
-				strip.className = "preview-shots" + (imgs.length === 1 ? " is-single" : "");
-				imgs.forEach(function (img, i) {
-					img.alt = (preview.dataset.alt || "Screenshot") + (imgs.length > 1 ? " " + (i + 1) + " of " + imgs.length : "");
-					strip.appendChild(img);
-				});
-				preview.appendChild(strip);
-				requestAnimationFrame(function () {
-					strip.classList.add("is-loaded");
-				});
-				if (imgs.length > 1) startSlides(preview, strip, imgs);
-				setPreviewTag(preview, "synced from github", "synced");
+		var makeStrip = function (single) {
+			var strip = document.createElement("div");
+			strip.className = "preview-shots" + (single ? " is-single" : "");
+			preview.appendChild(strip);
+			requestAnimationFrame(function () {
+				strip.classList.add("is-loaded");
 			});
+			setPreviewTag(preview, "synced from github", "synced");
+			return strip;
+		};
+
+		first.then(function (img) {
+			if (img) {
+				img.alt = label;
+				makeStrip(true).appendChild(img);
+				return;
+			}
+			var slides = null;
+			var count = 0;
+			pending.forEach(function (p) {
+				p.then(function (shot) {
+					if (!shot) return;
+					count += 1;
+					shot.alt = label + " " + count;
+					if (!slides) slides = startSlides(preview, makeStrip(false));
+					slides.add(shot);
+				});
+			});
+		});
 	}
 
 	// Only fetch a preview once its project is opened
