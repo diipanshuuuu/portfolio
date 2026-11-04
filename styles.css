@@ -241,6 +241,14 @@ button {
 .accent-text {
 	color: var(--text-strong);
 	background: linear-gradient(transparent 62%, var(--accent-soft) 62%);
+	text-decoration: none;
+	cursor: pointer;
+	white-space: nowrap;
+	transition: background-color var(--dur-fast) ease, opacity var(--dur-fast) ease;
+}
+
+.accent-text:hover {
+	background: linear-gradient(transparent 52%, var(--accent-soft) 52%);
 }
 
 .pill {

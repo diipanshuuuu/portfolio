@@ -29,8 +29,8 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet" />
-	<link rel="stylesheet" href="styles.css?v=20261104_01" />
-	<script src="script.js?v=20261104_01" defer></script>
+	<link rel="stylesheet" href="styles.css?v=20261104_02" />
+	<script src="script.js?v=20261104_02" defer></script>
 
 	<script type="application/ld+json">
 		{
@@ -60,7 +60,7 @@
 		<header class="header">
 			<div class="intro">
 				<h1 class="name reveal-load" style="--i: 0">
-					hii, i'm <span class="accent-text">dipanshu</span>
+					hii, i'm <a class="accent-text" href="resume.pdf" target="_blank" rel="noreferrer" title="Open résumé">dipanshu</a>
 					<a class="presence presence--dot" href="https://discord.com/users/1287480096806011007" target="_blank" rel="noreferrer" hidden>
 						<i class="presence-dot" aria-hidden="true"></i>
 						<span class="sr-only">Discord status</span>
@@ -210,6 +210,51 @@
 						</div>
 					</details>
 
+					<!-- SysCleanX -->
+					<details class="project" name="projects">
+						<summary>
+							<span class="project-name">SysCleanX</span>
+							<span class="project-line">a fast, safety-first windows cleaner in rust</span>
+							<svg class="icon chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9l-7 7-7-7" /></svg>
+						</summary>
+						<div class="project-body">
+							<!-- Screenshots load straight from the repo, so replacing them there updates this -->
+							<div
+								class="preview"
+								data-override="https://raw.githubusercontent.com/htmnsrc/SysCleanX/HEAD/preview.png"
+								data-shots="https://raw.githubusercontent.com/htmnsrc/SysCleanX/HEAD/docs/screenshots/clean.png https://raw.githubusercontent.com/htmnsrc/SysCleanX/HEAD/docs/screenshots/apps.png https://raw.githubusercontent.com/htmnsrc/SysCleanX/HEAD/docs/screenshots/startup.png https://raw.githubusercontent.com/htmnsrc/SysCleanX/HEAD/docs/screenshots/clean-light.png"
+								data-alt="SysCleanX screenshot"
+							>
+								<div class="thumb" aria-hidden="true">
+									<div class="thumb-bar"><i></i><i></i><i></i><span>syscleanx</span></div>
+									<div class="thumb-lines">
+										<div style="--i: 0"><span class="p">›</span> scan</div>
+										<div style="--i: 1"><span class="ok">✓</span> 81 cleaning targets</div>
+										<div style="--i: 2"><span class="ok">✓</span> every browser profile</div>
+										<div style="--i: 3"><span class="ok">✓</span> uninstall + leftovers</div>
+										<div style="--i: 4"><span class="ok">✓</span> startup manager</div>
+										<div style="--i: 5" class="m">› repair, debloat, duplicates…</div>
+									</div>
+								</div>
+								<span class="preview-tag" aria-hidden="true"><i></i>demo</span>
+								<a class="preview-link" href="https://github.com/htmnsrc/SysCleanX" target="_blank" rel="noreferrer" tabindex="-1" aria-hidden="true"></a>
+							</div>
+							<div class="project-info">
+								<p class="project-desc">
+									A Windows 10 &amp; 11 cleaner and uninstaller, built as a single ~6 MB native Rust app:
+									no runtime, no background service, no telemetry. It cleans 81 targets across browser profiles
+									and system caches behind a hard-coded safety guard, deep-uninstalls apps and leftovers, and
+									includes a reversible startup manager, Store app debloater, disk usage explorer and duplicate finder.
+								</p>
+								<p class="project-stack">rust · egui · win32 · nsis installer</p>
+								<div class="project-links">
+									<a href="https://github.com/htmnsrc/SysCleanX" target="_blank" rel="noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>git</a>
+									<a href="https://github.com/htmnsrc/SysCleanX/releases/latest" target="_blank" rel="noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>download</a>
+								</div>
+							</div>
+						</div>
+					</details>
+
 					<!-- NST SDC -->
 					<details class="project" name="projects">
 						<summary>
@@ -245,52 +290,6 @@
 								<div class="project-links">
 									<a href="https://github.com/diipanshuuuu/NST-SDC-site" target="_blank" rel="noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>git</a>
 									<a href="https://nst-sdc-site-ten.vercel.app" target="_blank" rel="noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>live</a>
-								</div>
-							</div>
-						</div>
-					</details>
-
-					<!-- SysCleanX -->
-					<details class="project" name="projects">
-						<summary>
-							<span class="project-name">SysCleanX</span>
-							<span class="project-line">a fast, safety-first windows cleaner in rust</span>
-							<svg class="icon chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9l-7 7-7-7" /></svg>
-						</summary>
-						<div class="project-body">
-							<!-- Screenshots load straight from the repo, so replacing them there updates this -->
-							<div
-								class="preview"
-								data-override="https://raw.githubusercontent.com/htmnsrc/SysCleanX/HEAD/preview.png"
-								data-shots="https://raw.githubusercontent.com/htmnsrc/SysCleanX/HEAD/docs/screenshots/clean.png https://raw.githubusercontent.com/htmnsrc/SysCleanX/HEAD/docs/screenshots/apps.png https://raw.githubusercontent.com/htmnsrc/SysCleanX/HEAD/docs/screenshots/startup.png https://raw.githubusercontent.com/htmnsrc/SysCleanX/HEAD/docs/screenshots/clean-light.png"
-								data-alt="SysCleanX screenshot"
-							>
-								<div class="thumb" aria-hidden="true">
-									<div class="thumb-bar"><i></i><i></i><i></i><span>syscleanx</span></div>
-									<div class="thumb-lines">
-										<div style="--i: 0"><span class="p">›</span> scan</div>
-										<div style="--i: 1"><span class="ok">✓</span> 81 cleaning targets</div>
-										<div style="--i: 2"><span class="ok">✓</span> every browser profile</div>
-										<div style="--i: 3"><span class="ok">✓</span> uninstall + leftovers</div>
-										<div style="--i: 4"><span class="ok">✓</span> startup manager</div>
-										<div style="--i: 5" class="m">› repair, debloat, duplicates…</div>
-									</div>
-								</div>
-								<span class="preview-tag" aria-hidden="true"><i></i>demo</span>
-								<a class="preview-link" href="https://github.com/htmnsrc/SysCleanX" target="_blank" rel="noreferrer" tabindex="-1" aria-hidden="true"></a>
-							</div>
-							<div class="project-info">
-								<p class="project-desc">
-									A Windows 10 &amp; 11 cleaner, built as a single ~6 MB native Rust app:
-									no runtime, no background service, no telemetry. It cleans
-									81 targets (every browser profile included) behind a hard safety guard,
-									uninstalls programs along with their leftovers, and adds a startup manager,
-									debloat, repair, disk usage and a duplicate finder.
-								</p>
-								<p class="project-stack">rust · egui · win32 · nsis installer</p>
-								<div class="project-links">
-									<a href="https://github.com/htmnsrc/SysCleanX" target="_blank" rel="noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>git</a>
-									<a href="https://github.com/htmnsrc/SysCleanX/releases/latest" target="_blank" rel="noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>download</a>
 								</div>
 							</div>
 						</div>

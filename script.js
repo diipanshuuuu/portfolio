@@ -444,8 +444,8 @@
 			},
 			projects: function () {
 				print("kavach      local privacy shield for ai chats");
-				print("nst-sdc     vanilla redesign of my college's dev club site, live github data");
 				print("syscleanx   fast, safety-first windows cleaner + uninstaller in rust");
+				print("nst-sdc     vanilla redesign of my college's dev club site, live github data");
 				print("type: open <name>", "dim");
 			},
 			skills: function () {
@@ -457,7 +457,7 @@
 			open: function (args) {
 				var key = (args[0] || "").toLowerCase();
 				if (!LINKS[key]) {
-					print("usage: open kavach | nst-sdc | syscleanx | github | linkedin | discord | resume", "err");
+					print("usage: open kavach | syscleanx | nst-sdc | github | linkedin | discord | resume", "err");
 					return;
 				}
 				print("opening " + key + " ↗", "acc");
