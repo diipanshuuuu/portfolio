@@ -1104,41 +1104,6 @@
 		});
 	}
 
-	/* ---------- Cursor spotlight + dot grid: eases toward the pointer, idles when settled ---------- */
-	if (finePointer) {
-		var spotlight = document.querySelector(".spotlight");
-		var targetX = innerWidth / 2;
-		var targetY = innerHeight / 3;
-		var currentX = targetX;
-		var currentY = targetY;
-		var frame = 0;
-
-		function follow() {
-			currentX += (targetX - currentX) * 0.18;
-			currentY += (targetY - currentY) * 0.18;
-			spotlight.style.transform = "translate3d(" + currentX.toFixed(1) + "px, " + currentY.toFixed(1) + "px, 0)";
-			// Keep the dots pinned to the screen while the mask travels (the dot layer starts 240px up-left of the cursor)
-			spotlight.style.setProperty("--bx", ((240 - currentX) % 22).toFixed(1) + "px");
-			spotlight.style.setProperty("--by", ((240 - currentY) % 22).toFixed(1) + "px");
-			frame = Math.abs(targetX - currentX) + Math.abs(targetY - currentY) > 0.5 ? requestAnimationFrame(follow) : 0;
-		}
-
-		window.addEventListener(
-			"pointermove",
-			function (e) {
-				targetX = e.clientX;
-				targetY = e.clientY;
-				spotlight.classList.add("is-active");
-				if (!frame) frame = requestAnimationFrame(follow);
-			},
-			{ passive: true }
-		);
-
-		document.addEventListener("mouseout", function (e) {
-			if (!e.relatedTarget) spotlight.classList.remove("is-active");
-		});
-	}
-
 	/* ---------- Click sparks ---------- */
 	var canvas = document.querySelector(".sparks");
 	var ctx = canvas.getContext("2d");

@@ -34,7 +34,7 @@ It's a single, minimal page written in plain HTML and CSS with a little vanilla 
 ```
 index.html            the page; all content lives here
 styles.css            design tokens, layout, components, motion
-script.js             theme, copy email, name effect, scramble, spotlight, sparks, shell, clock, easter eggs
+script.js             theme, copy email, name effect, scramble, sparks, shell, clock, easter eggs
 favicon.svg           "d." mark
 apple-touch-icon.png  180×180 home-screen icon
 resume.pdf            exported résumé, linked from the page

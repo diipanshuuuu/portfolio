@@ -49,7 +49,6 @@ Every light shade keeps 4.5:1 on cream.
 
 ## The subtle layer (keep it this restrained)
 - Name decrypts on load; letters thin from 700 to about 180 within 120px of the cursor (fine pointers only).
-- Faint dot grid inside the cursor spotlight.
 - Section titles, footer links and project names scramble for 360ms on hover.
 - Tagline types itself, with a live Ayodhya clock under the theme toggle.
 - Hidden shell (`/` key or the footer "secret shell" button) is a modal dialog: focus stays inside and Escape closes it.

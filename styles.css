@@ -1098,44 +1098,6 @@ kbd {
 	border-radius: 4px;
 }
 
-/* ==========================================================
-   Immersive layer
-   ========================================================== */
-
-/* Soft glow that eases after the cursor (moved with transform by script.js) */
-.spotlight {
-	position: fixed;
-	left: 0;
-	top: 0;
-	z-index: 0;
-	width: 900px;
-	height: 900px;
-	margin: -450px 0 0 -450px;
-	pointer-events: none;
-	border-radius: 50%;
-	background: radial-gradient(closest-side, var(--accent-glow), transparent);
-	opacity: 0;
-	transform: translate3d(50vw, 30vh, 0);
-	transition: opacity var(--dur-slow) ease;
-	will-change: transform;
-}
-
-.spotlight.is-active {
-	opacity: 1;
-}
-
-/* A dot grid that only appears around the cursor; script.js keeps it aligned to the screen */
-.spotlight::after {
-	content: "";
-	position: absolute;
-	inset: 210px;
-	border-radius: 50%;
-	background-image: radial-gradient(circle, rgb(var(--fg-rgb) / 0.3) 1px, transparent 1.6px);
-	background-size: 22px 22px;
-	background-position: var(--bx, 0) var(--by, 0);
-	-webkit-mask-image: radial-gradient(closest-side, #000, transparent);
-	mask-image: radial-gradient(closest-side, #000, transparent);
-}
 
 /* ==========================================================
    Live signal: a "now" line from Discord, under the tagline
@@ -1778,13 +1740,6 @@ kbd {
 	}
 }
 
-/* Touch devices: no cursor glow */
-@media (hover: none) {
-	.spotlight {
-		display: none;
-	}
-}
-
 /* ==========================================================
    Reduced motion: everything in its final state
    ========================================================== */
@@ -1801,7 +1756,6 @@ kbd {
 	}
 
 	.typed::after,
-	.spotlight,
 	.sparks {
 		display: none;
 	}
@@ -1813,7 +1767,6 @@ kbd {
 }
 
 @media print {
-	.spotlight,
 	.sparks,
 	.bottom-fade,
 	.theme-toggle,
