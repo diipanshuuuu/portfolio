@@ -330,7 +330,7 @@
 			"nst-sdc": "https://nst-sdc-site-ten.vercel.app",
 			syscleanx: "https://github.com/htmnsrc/SysCleanX",
 			github: "https://github.com/diipanshuuuu",
-			linkedin: "https://www.linkedin.com/in/dipanshu-singh-86b2ba444/",
+			linkedin: "https://www.linkedin.com/in/diipanshuuuu",
 			resume: "resume.pdf",
 			discord: "https://discord.com/users/" + DISCORD_ID
 		};
