@@ -1,6 +1,6 @@
 # dipanshu singh — still exploring
 
-> **Live site**: [https://dipannshuuuu.web.app](https://dipannshuuuu.web.app)
+> **Live site**: [https://diipanshuuuu.web.app](https://diipanshuuuu.web.app)
 
 Personal portfolio of **Dipanshu Singh**, a first-year B.Tech CSE (AI & ML) student at Newton School of Technology who builds open-source tools, web interfaces and local AI.
 
