@@ -1,68 +1,82 @@
-# dipanshu singh — still exploring
+# dipanshu singh — software & ai
 
 > **Live site**: [https://diipanshuuuu.web.app](https://diipanshuuuu.web.app)
 
-Personal portfolio of **Dipanshu Singh**, a first-year B.Tech CSE (AI & ML) student at Newton School of Technology who builds open-source tools, web interfaces and local AI.
+Personal portfolio of **Dipanshu Singh**, a first-year B.Tech CSE (AI & ML) student at Newton School of Technology who builds open-source utilities, web and systems software, and local AI tools.
 
-It's a single, minimal page written in plain HTML and CSS with a little vanilla JavaScript: no frameworks, no dependencies, no build step. It looks quiet, and has a few small surprises for people who poke around. The copy reads like an explorer's field notes: where i am, what i carry, the trail so far.
+Built with plain HTML, CSS, and vanilla JavaScript (with a lightweight Express server for local dev and contribution/API helpers). It looks quiet, and has a few small surprises for people who poke around.
 
 ## Features
 
-- **Minimal, monospace layout.** One column in JetBrains Mono, dark by default with a cream light theme. Switching themes grows the new one out of the toggle in a circle.
+- **Minimal, monospace layout.** One column in JetBrains Mono, monochrome dark by default with a cream light theme. Switching themes grows the new one out of the toggle in a circle.
 - **Subtle details:**
   - The name decrypts on load, and its letters thin out as the cursor gets close. JetBrains Mono is a variable font with fixed-width letters, so nothing shifts.
   - A faint dot grid appears only around the cursor.
   - Section titles and links scramble for a beat on hover.
-  - The tagline types itself, and a live clock shows the time in Ayodhya.
+  - The tagline types itself, and a live clock shows the time in Ayodhya (`26.79°n 82.20°e`).
+  - Auto-hiding contribution-square page scroll indicator.
   - Clicking anywhere throws sparks.
-- **Projects.** Clean one-line rows, one open at a time. Hovering a row opens it with its preview, description and links, and the page glides so it sits near the top with the neighbouring rows still in reach. It stays open until you hover another row or click it shut (keyboard and touch work the same way). Previews load the first time a row opens, and each one stays up to date on its own:
+- **GitHub contributions heatmap.** Merges contribution activity across `diipanshuuuu` and `htmnsrc` (`lib/contributions.js`) with interactive tooltips.
+- **Projects & Field Notes.** Clean one-line rows, one open at a time, with lazy-loaded previews (`lib/lazy-media.js`):
   - **Websites** are embedded live and scaled down, so a new deploy shows up immediately.
-  - **Apps** pull their screenshots straight from their GitHub repo, so replacing a screenshot there updates the portfolio. No redeploy needed. With several screenshots, they crossfade one at a time, with dots to jump between them.
-  - If neither is available, a small animated demo is shown.
-- **Live signal from Discord.** A plain "now ›" line under the tagline shows the most interesting thing happening on my Discord: the song I'm listening to (with a small equalizer), what I'm doing ("coding in VS Code · 47m"), or just "idle on discord". It rotates when there's more than one. It uses [Lanyard](https://github.com/Phineas/lanyard): one REST call to paint immediately, then a WebSocket that updates the moment my status changes. It needs my account to stay in the Lanyard Discord server; if Lanyard is unreachable, the card stays hidden.
+  - **Apps** pull their screenshots straight from their GitHub repo (`preview.png` or `data-shots`), crossfading with dot controls.
+  - **Kavach** includes an interactive local PII masking lab (`lib/kavach.js`) right inside the card.
+- **Live signal from Discord.** Uses [Lanyard](https://github.com/Phineas/lanyard) (REST + WebSocket) to show live activity in `clock`, `now`, or `dot` presence modes; stays hidden if unreachable.
 - **Secrets:**
-  - Press `/` (or click "off the map" in the footer) to open a hidden shell. Try `help`, `map`, `goto trail`, `compass`, `neofetch` or `sudo hire-me`.
+  - Press `/` (or click the footer hint) to open a hidden shell. Try `help`, `map`, `goto trail`, `compass`, `neofetch`, or `sudo hire-me`.
   - The Konami code cycles the accent color.
 - **Accessible:**
-  - Skip link, visible focus and keyboard support.
-  - The shell is a modal dialog that keeps focus inside and closes on Escape.
-  - No horizontal scrolling at 375px.
-  - With `prefers-reduced-motion`, nothing moves and all content shows in its final state.
+  - Skip link, visible focus, and full keyboard support.
+  - The shell is a modal dialog that traps focus and closes on Escape.
+  - Responsive down to 375px with `prefers-reduced-motion` support.
 
 ## Structure
 
-```
+```text
 index.html            the page; all content lives here
 styles.css            design tokens, layout, components, motion
 script.js             theme, copy email, name effect, scramble, sparks, shell, clock, easter eggs
-favicon.svg           "d." mark
+server.js             optional Express server for local dev and API routes
+lib/                  shared modules & tests (contributions, kavach, lazy-media, reading-progress)
+favicon.svg           monochrome "d" + square cursor mark
 apple-touch-icon.png  180×180 home-screen icon
+og-image.jpg          Open Graph / social preview image
 resume.pdf            exported résumé, linked from the page
 resume/resume.html    résumé source
+firebase.json         Firebase Hosting config (site: diipanshuuuu)
+robots.txt            crawler rules
+sitemap.xml           sitemap for diipanshuuuu.web.app
 design-system/        UI/UX Pro Max design notes (pages/home.md overrides MASTER.md)
 ```
 
-`script.js` is progressive enhancement only. With JavaScript off, the page still renders, the projects still open, and the scroll reveals still run in browsers that support CSS scroll-driven animations.
-
 ## Run locally
 
-Open `index.html` in a browser, or serve the folder:
+With Node.js (Express server):
+
+```bash
+npm install
+npm start
+```
+
+Or serve statically without Node:
 
 ```bash
 python3 -m http.server 8000
 ```
 
-Then visit http://localhost:8000.
+Run tests and syntax checks:
+
+```bash
+npm test
+npm run lint
+```
 
 ## Editing
 
 - **Content:** everything is in `index.html`, and each section is marked with a comment such as `===== Today =====`.
 - **Tagline:** after changing the text, set `--chars` on the `.typed` element to the new character count so the typing animation lines up.
 - **Projects:** copy a `<details class="project" name="projects">` block. Keeping the shared `name` means only one project is open at a time.
-- **Project previews:** each `.preview` reads one of three attributes.
-  - `data-live`: a URL to embed live.
-  - `data-shots`: image URLs, separated by spaces.
-  - `data-override`: an image that wins over the shots if it exists. It's set to `preview.png` in each repo, so you can add or replace a screenshot there at any time.
+- **Project previews:** each `.preview` reads `data-live`, `data-shots`, or `data-override` (`preview.png` in each repo).
 - **Discord:** the user ID is `DISCORD_ID` near the presence code in `script.js`.
 - **Shell commands:** they live in the `commands` object in `script.js`.
 - **Colors, type and motion:** the tokens are at the top of `styles.css`, with the light theme in `:root[data-theme="light"]` and the extra accents in `[data-accent]` blocks.
@@ -81,7 +95,13 @@ The PDF is generated from `resume/resume.html`. After editing it, re-export in e
 
 ## Deploy
 
-It's a static site, hosted on Firebase (`firebase deploy`). It also works as-is on GitHub Pages, Vercel or Netlify: leave the build command empty and publish the repository root.
+Hosted on Firebase Hosting at `https://diipanshuuuu.web.app`:
+
+```bash
+firebase deploy --only hosting
+```
+
+It also works as a static site on GitHub Pages, Vercel, or Netlify: leave the build command empty and publish the repository root.
 
 ## Credits
 
