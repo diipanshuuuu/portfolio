@@ -2,6 +2,8 @@
 
 > **Live site**: [https://diipanshuuuu.web.app](https://diipanshuuuu.web.app)
 
+![Portfolio preview](og-image.jpg)
+
 Personal portfolio of **Dipanshu Singh**, a first-year B.Tech CSE (AI & ML) student at Newton School of Technology who builds open-source utilities, web and systems software, and local AI tools.
 
 Built with plain HTML, CSS, and vanilla JavaScript (with a lightweight Express server for local dev and contribution/API helpers). It looks quiet, and has a few small surprises for people who poke around.
