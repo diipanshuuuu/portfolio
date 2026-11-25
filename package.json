@@ -1,0 +1,16 @@
+{
+  "name": "dipanshu-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "node --check server.js && node --check lib/contributions.js && node --check lib/kavach.js && node --check lib/reading-progress.js && node --check lib/lazy-media.js && node --check script.js",
+    "lint": "node --check server.js && node --check lib/contributions.js && node --check lib/kavach.js && node --check lib/reading-progress.js && node --check lib/lazy-media.js && node --check script.js",
+    "test": "node --test lib/contributions.test.js lib/kavach.test.js lib/reading-progress.test.js lib/lazy-media.test.js server.test.js"
+  },
+  "dependencies": {
+    "express": "^5.3.0"
+  }
+}

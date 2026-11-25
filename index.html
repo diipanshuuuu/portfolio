@@ -1,26 +1,38 @@
 <!doctype html>
-<html lang="en" data-theme="dark" data-presence="now">
+<html lang="en" data-theme="dark" data-presence="clock">
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>dipanshu singh — still exploring</title>
-	<meta name="description" content="Dipanshu Singh: first-year B.Tech CSE (AI & ML) student at Newton School of Technology, exploring open source, the web and local AI." />
+	<title>dipanshu singh — software &amp; ai</title>
+	<meta name="description" content="Dipanshu Singh: first-year B.Tech CSE (AI & ML) student at Newton School of Technology, building open-source tools, web interfaces, and local AI." />
 	<meta name="author" content="Dipanshu Singh" />
 	<meta name="theme-color" content="#08090a" />
+	<link rel="canonical" href="https://dipannshuuuu.web.app/" />
 	<meta property="og:type" content="website" />
-	<meta property="og:title" content="dipanshu singh — still exploring" />
-	<meta property="og:description" content="First-year CSE (AI & ML) student exploring open source, the web and local AI." />
-	<meta name="twitter:card" content="summary" />
+	<meta property="og:site_name" content="dipanshu singh" />
+	<meta property="og:url" content="https://dipannshuuuu.web.app/" />
+	<meta property="og:title" content="dipanshu singh — software &amp; ai" />
+	<meta property="og:description" content="First-year B.Tech CSE (AI & ML) student building open-source tools, web interfaces, and local AI." />
+	<meta property="og:image" content="https://dipannshuuuu.web.app/og-image.jpg" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	<meta property="og:image:alt" content="Dipanshu Singh developer portfolio preview" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content="dipanshu singh — software &amp; ai" />
+	<meta name="twitter:description" content="First-year B.Tech CSE (AI & ML) student building open-source tools, web interfaces, and local AI." />
+	<meta name="twitter:image" content="https://dipannshuuuu.web.app/og-image.jpg" />
 	<link rel="icon" href="favicon.svg" type="image/svg+xml" />
 	<link rel="apple-touch-icon" href="apple-touch-icon.png" />
 
-	<!-- Set theme and accent before paint to avoid a flash of the wrong colors -->
+	<!-- Set theme, presence mode and accent before paint to avoid a flash of the wrong colors -->
 	<script>
 		try {
 			var t = localStorage.getItem("theme");
 			if (t) document.documentElement.dataset.theme = t;
 			var a = localStorage.getItem("accent");
-			if (a) document.documentElement.dataset.accent = a;
+			if (a && a !== "green" && a !== "mono") document.documentElement.dataset.accent = a;
+			var p = localStorage.getItem("presence");
+			if (p === "now" || p === "clock" || p === "dot") document.documentElement.dataset.presence = p;
 			// Clean legacy mode key from previous iterations
 			localStorage.removeItem("mode");
 		} catch (e) {}
@@ -29,17 +41,21 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet" />
-	<link rel="stylesheet" href="styles.css?v=20261105_01" />
-	<script src="script.js?v=20261105_01" defer></script>
+	<link rel="stylesheet" href="styles.css?v=20261125_11" />
+	<script src="script.js?v=20261125_11" defer></script>
 
 	<script type="application/ld+json">
 		{
 			"@context": "https://schema.org",
 			"@type": "Person",
 			"name": "Dipanshu Singh",
-			"description": "B.Tech CSE (AI & ML) student exploring open source, the web and local AI.",
+			"url": "https://dipannshuuuu.web.app/",
+			"email": "mailto:diipanshuuuu@gmail.com",
+			"jobTitle": "B.Tech CSE (AI & ML) Student & Open-Source Developer",
+			"description": "B.Tech CSE (AI & ML) student building open-source tools, web software, and local AI.",
 			"affiliation": { "@type": "CollegeOrUniversity", "name": "Newton School of Technology" },
 			"address": { "@type": "PostalAddress", "addressLocality": "Ayodhya", "addressCountry": "IN" },
+			"knowsAbout": ["Python", "TypeScript", "JavaScript", "Rust", "C++", "React", "Next.js", "Tailwind CSS", "Three.js", "WebGL", "FastAPI", "Ollama", "Hugging Face", "Open Source", "Local LLMs"],
 			"sameAs": [
 				"https://github.com/diipanshuuuu",
 				"https://github.com/htmnsrc",
@@ -51,6 +67,9 @@
 
 <body>
 	<a class="skip-link" href="#main">skip to content</a>
+
+	<!-- Subtle cursor-proximity dot grid (desktop fine pointer only) -->
+	<div class="dot-grid" aria-hidden="true"></div>
 
 	<!-- Click sparks (decorative) -->
 	<canvas class="sparks" aria-hidden="true"></canvas>
@@ -77,7 +96,7 @@
 
 				<!-- Set --chars to the tagline's character count -->
 				<p class="tagline reveal-load" style="--i: 2">
-					<em class="typed" style="--chars: 10"><span class="typed-text">exploring.</span></em>
+					<em class="typed" style="--chars: 9"><span class="typed-text">building.</span></em>
 				</p>
 
 				<!-- Live signal: Discord presence via Lanyard, filled in by script.js -->
@@ -88,6 +107,14 @@
 						<span class="presence-eq" aria-hidden="true" hidden><i></i><i></i><i></i></span>
 					</a>
 				</p>
+
+				<nav class="quick-links reveal-load" style="--i: 3" aria-label="Quick links">
+					<a href="https://github.com/diipanshuuuu" target="_blank" rel="noreferrer">github</a>
+					<span class="sep" aria-hidden="true">·</span>
+					<a href="https://www.linkedin.com/in/diipanshuuuu" target="_blank" rel="noreferrer">linkedin</a>
+					<span class="sep" aria-hidden="true">·</span>
+					<a href="resume.pdf" target="_blank" rel="noreferrer">resume</a>
+				</nav>
 			</div>
 
 			<div class="header-side reveal-load" style="--i: 1">
@@ -106,15 +133,67 @@
 		</header>
 
 		<main id="main" class="sections">
+			<!-- ===== GitHub Contributions ===== -->
+			<section class="section contrib-section reveal-load" style="--i: 4" aria-label="GitHub contributions">
+				<div class="contrib-frame" data-contrib-frame>
+					<div class="contrib-scroll" data-contrib-scroll>
+						<div class="contrib-grid" data-contrib-grid role="group" aria-label="Contribution activity over the last year"></div>
+					</div>
+					<div class="contrib-tooltip" data-contrib-tooltip role="tooltip" hidden></div>
+				</div>
+				<div class="contrib-foot">
+					<a class="contrib-total" href="https://github.com/diipanshuuuu" target="_blank" rel="noreferrer" data-contrib-total>loading contributions…</a>
+					<div class="contrib-legend" aria-hidden="true">
+						<span>Less</span>
+						<span class="contrib-swatches">
+							<i data-level="0"></i>
+							<i data-level="1"></i>
+							<i data-level="2"></i>
+							<i data-level="3"></i>
+							<i data-level="4"></i>
+						</span>
+						<span>More</span>
+					</div>
+				</div>
+			</section>
+
 			<!-- ===== Today ===== -->
 			<section class="section reveal-load" style="--i: 5" aria-labelledby="today-title">
 				<h2 id="today-title" class="section-title">where i am</h2>
 				<p class="lead">
 					I'm Dipanshu Singh, a first-year B.Tech CSE (AI &amp; ML) student at
-					Newton School of Technology, based in Ayodhya. I learn by exploring: open
-					source, software development, and lately self-hosting and training AI
-					models with Ollama and Hugging Face.
+					Newton School of Technology, based in Ayodhya. I learn by building:
+					open-source utilities, web and systems software, and lately local AI tools,
+					LLM workbenches, and interactive model visualizers with Ollama and Hugging Face.
 				</p>
+			</section>
+
+			<!-- ===== Education ===== -->
+			<section class="section reveal" aria-labelledby="education-title">
+				<h2 id="education-title" class="section-title">education</h2>
+				<ol class="timeline">
+					<li class="timeline-item is-current">
+						<div class="timeline-head">
+							<span class="strong">B.Tech CSE (AI &amp; ML) · Newton School of Technology</span>
+							<span class="date">2026 — now</span>
+						</div>
+						<p class="muted">First year, specialising in artificial intelligence and machine learning.</p>
+					</li>
+					<li class="timeline-item">
+						<div class="timeline-head">
+							<span class="strong">Rajkeeya Abhinav Vidyalaya, Babhnan</span>
+							<span class="date">2024 — 2025</span>
+						</div>
+						<p class="muted">Senior Secondary Education (Class 12).</p>
+					</li>
+					<li class="timeline-item">
+						<div class="timeline-head">
+							<span class="strong">Army Public School, Nehru Road</span>
+							<span class="date">2017 — 2023</span>
+						</div>
+						<p class="muted">Middle and Secondary Education (Classes 5–10 · Class 10 in 2022–23).</p>
+					</li>
+				</ol>
 			</section>
 
 			<!-- ===== Skills ===== -->
@@ -123,19 +202,19 @@
 				<dl class="rows">
 					<div class="row">
 						<dt>languages</dt>
-						<dd>Python, JavaScript, C, C++, Rust, Bash</dd>
+						<dd>Python, TypeScript, JavaScript, Rust, C, C++, Bash</dd>
 					</div>
 					<div class="row">
 						<dt>web</dt>
-						<dd>HTML, CSS, JavaScript</dd>
+						<dd>React, Next.js, Tailwind CSS, Vite, Express, FastAPI, Three.js, HTML, CSS</dd>
 					</div>
 					<div class="row">
 						<dt>ai / ml</dt>
-						<dd>Ollama, Hugging Face, local LLM hosting, model training</dd>
+						<dd>Ollama, Hugging Face, Tesseract OCR, local LLM hosting, model training</dd>
 					</div>
 					<div class="row">
 						<dt>tools</dt>
-						<dd>Git, GitHub, Linux, Vim, VS Code, Firebase, Vercel</dd>
+						<dd>Git, GitHub, Linux, Vim, VS Code, egui, Firebase, Vercel</dd>
 					</div>
 				</dl>
 			</section>
@@ -146,10 +225,10 @@
 				<ol class="timeline">
 					<li class="timeline-item is-current">
 						<div class="timeline-head">
-							<span class="strong">B.Tech CSE (AI &amp; ML) · Newton School of Technology</span>
-							<span class="date">2026 — now</span>
+							<span class="strong">Shipping AI tools &amp; visualizers on the web</span>
+							<span class="date">nov 2026</span>
 						</div>
-						<p class="muted">First year, specialising in artificial intelligence and machine learning.</p>
+						<p class="muted">Built Kool PlayGround (BYOK multi-provider LLM workbench), Unprompted (interactive 3D LLM &amp; DistilGPT-2 perplexity guide), and the Next.js site for SysCleanX.</p>
 					</li>
 					<li class="timeline-item">
 						<div class="timeline-head">
@@ -172,6 +251,86 @@
 			<section class="section reveal" aria-labelledby="projects-title">
 				<h2 id="projects-title" class="section-title">built along the way</h2>
 				<div class="projects">
+					<!-- Kool PlayGround -->
+					<details class="project" name="projects" open>
+						<summary>
+							<span class="project-name">Kool PlayGround</span>
+							<span class="project-line">a minimal byok multi-provider llm playground</span>
+							<svg class="icon chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9l-7 7-7-7" /></svg>
+						</summary>
+						<div class="project-body">
+							<div class="preview" data-override="https://raw.githubusercontent.com/diipanshuuuu/Kool-PlayGround/HEAD/public/preview.png" data-alt="Kool PlayGround workspace">
+								<div class="thumb" aria-hidden="true">
+									<div class="thumb-bar"><i></i><i></i><i></i><span>kool-playground · groq</span></div>
+									<div class="thumb-lines">
+										<div style="--i: 0"><span class="k">providers</span>groq · openai · anthropic · openrouter</div>
+										<div style="--i: 1"><span class="k">vault</span>client-only session / local key storage</div>
+										<div style="--i: 2"><span class="k">controls</span>temp · top-p · seed · reasoning · search</div>
+										<div style="--i: 3" class="ok">✓ live /models discovery &amp; shot telemetry</div>
+									</div>
+								</div>
+								<span class="preview-tag" aria-hidden="true"><i></i>demo</span>
+								<a class="preview-link" href="https://koolplayground.web.app" target="_blank" rel="noreferrer" tabindex="-1" aria-hidden="true"></a>
+							</div>
+							<div class="project-info">
+								<p class="project-desc">
+									A distraction-free, bring-your-own-key LLM workbench supporting Groq, OpenAI,
+									Anthropic, OpenRouter, custom OpenAI-compatible endpoints (including Ollama), and
+									a built-in sandbox. Keys stay strictly client-side in session memory or opt-in
+									browser storage, paired with live per-key <code>/models</code> discovery, full
+									sampling controls, prompt shot-type telemetry, and browser search grounding.
+								</p>
+								<p class="project-stack">react · typescript · tailwind css · vite · express · firebase</p>
+								<div class="project-links">
+									<a href="https://github.com/diipanshuuuu/Kool-PlayGround" target="_blank" rel="noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>git</a>
+									<a href="https://koolplayground.web.app" target="_blank" rel="noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>live</a>
+									<span class="repo-meta" data-repo-meta="diipanshuuuu/Kool-PlayGround" hidden></span>
+								</div>
+							</div>
+						</div>
+					</details>
+
+					<!-- Unprompted (LLM Pipeline Explorer) -->
+					<details class="project" name="projects">
+						<summary>
+							<span class="project-name">Unprompted</span>
+							<span class="project-line">inside how an llm predicts every word</span>
+							<svg class="icon chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9l-7 7-7-7" /></svg>
+						</summary>
+						<div class="project-body">
+							<div class="preview" data-fit="contain" data-override="https://raw.githubusercontent.com/diipanshuuuu/LLM-Pipeline-Explorer/HEAD/preview.png" data-alt="Unprompted 3D LLM pipeline and DistilGPT-2 perplexity guide">
+								<div class="thumb" aria-hidden="true">
+									<div class="thumb-bar"><i></i><i></i><i></i><span>unprompted · llm pipeline</span></div>
+									<div class="thumb-lines">
+										<div style="--i: 0"><span class="k">stage 01</span>bpe sub-word tokens → utf-8 bytes</div>
+										<div style="--i: 1"><span class="k">stage 02–04</span>3d vector space · rope · causal self-attention</div>
+										<div style="--i: 2"><span class="k">stage 05–07</span>rmsnorm · swiglu ffn · top-k &amp; nucleus sampling</div>
+										<div style="--i: 3" class="ok">✓ stage 08 · live distilgpt-2 perplexity &amp; surprisal</div>
+									</div>
+								</div>
+								<span class="preview-tag" aria-hidden="true"><i></i>demo</span>
+								<a class="preview-link" href="https://unpromted.web.app" target="_blank" rel="noreferrer" tabindex="-1" aria-hidden="true"></a>
+							</div>
+							<div class="project-info">
+								<p class="project-desc">
+									An interactive 8-stage 3D WebGL field guide opening the black box of
+									decoder-only Transformer LLMs: live BPE tokenization with UTF-8 bytes,
+									interactive Three.js 3D embedding space with cosine-similarity arcs, RoPE vs.
+									sinusoidal positional encoding, causal multi-head self-attention, RMSNorm +
+									SwiGLU FFN stabilization, Temperature/Top-K/Top-P sampling, and a live
+									DistilGPT-2 Perplexity Explorer with real token probabilities, surprisal
+									heatmaps, and 1-click token swapping.
+								</p>
+								<p class="project-stack">javascript · three.js · webgl · transformers.js · express · firebase</p>
+								<div class="project-links">
+									<a href="https://github.com/diipanshuuuu/LLM-Pipeline-Explorer" target="_blank" rel="noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>git</a>
+									<a href="https://unpromted.web.app" target="_blank" rel="noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>live</a>
+									<span class="repo-meta" data-repo-meta="diipanshuuuu/LLM-Pipeline-Explorer" hidden></span>
+								</div>
+							</div>
+						</div>
+					</details>
+
 					<!-- Kavach -->
 					<details class="project" name="projects">
 						<summary>
@@ -196,15 +355,39 @@
 							</div>
 							<div class="project-info">
 								<p class="project-desc">
-									A local privacy shield for AI chats. This browser extension catches Indian
-									personal data (Aadhaar, PAN, bank details, names, addresses) in anything you
-									paste or upload to ChatGPT, Gemini or Claude, and masks it before it leaves
-									your laptop. Open-weight models on your own machine lift detection recall
-									from 69% to 97% with zero false alarms in testing.
+									A local privacy shield for AI chats built at Hacktoberfest Hack Day Pune.
+									This browser extension catches Indian personal data (Aadhaar, PAN, bank details,
+									names, addresses) in pasted text, images, PDFs and slides (with English, Hindi
+									and Marathi OCR) before it reaches ChatGPT, Gemini or Claude. Pairing checksum
+									rules with on-device NER lifts recall from 68.9% to 97.3% at 100% precision
+									across 150 test documents (~60 ms on CPU).
 								</p>
+								<div class="kavach-lab" data-kavach-lab>
+									<div class="kavach-lab-head">
+										<span class="kavach-lab-title">try it locally</span>
+										<div class="kavach-samples" role="group" aria-label="Sample prompts">
+											<button type="button" class="is-active" data-kavach-sample="kyc">kyc</button>
+											<button type="button" data-kavach-sample="bank">bank</button>
+											<button type="button" data-kavach-sample="invoice">invoice</button>
+										</div>
+									</div>
+									<input
+										type="text"
+										class="kavach-input"
+										data-kavach-input
+										aria-label="Try Kavach local PII masking"
+										value="Share Rahul's Aadhaar 2345 6789 0123 and PAN ABCDE1234F to rahul@okicici"
+										placeholder="paste Aadhaar, PAN, IFSC, UPI, email or phone…"
+										spellcheck="false"
+										autocomplete="off"
+									/>
+									<div class="kavach-out" data-kavach-output aria-live="polite"></div>
+									<p class="kavach-status" data-kavach-status></p>
+								</div>
 								<p class="project-stack">python · fastapi · hugging face · ollama · tesseract · typescript</p>
 								<div class="project-links">
 									<a href="https://github.com/diipanshuuuu/Kavach" target="_blank" rel="noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>git</a>
+									<span class="repo-meta" data-repo-meta="diipanshuuuu/Kavach" hidden></span>
 								</div>
 							</div>
 						</div>
@@ -246,10 +429,12 @@
 									and system caches behind a hard-coded safety guard, deep-uninstalls apps and leftovers, and
 									includes a reversible startup manager, Store app debloater, disk usage explorer and duplicate finder.
 								</p>
-								<p class="project-stack">rust · egui · win32 · nsis installer</p>
+								<p class="project-stack">rust · egui · win32 · nsis · next.js (site)</p>
 								<div class="project-links">
 									<a href="https://github.com/htmnsrc/SysCleanX" target="_blank" rel="noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>git</a>
+									<a href="https://syscleanx.web.app" target="_blank" rel="noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>site</a>
 									<a href="https://github.com/htmnsrc/SysCleanX/releases/latest" target="_blank" rel="noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>download</a>
+									<span class="repo-meta" data-repo-meta="htmnsrc/SysCleanX" hidden></span>
 								</div>
 							</div>
 						</div>
@@ -290,6 +475,7 @@
 								<div class="project-links">
 									<a href="https://github.com/diipanshuuuu/NST-SDC-site" target="_blank" rel="noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>git</a>
 									<a href="https://nst-sdc-site-ten.vercel.app" target="_blank" rel="noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>live</a>
+									<span class="repo-meta" data-repo-meta="diipanshuuuu/NST-SDC-site" hidden></span>
 								</div>
 							</div>
 						</div>
@@ -297,13 +483,63 @@
 				</div>
 			</section>
 
-			<!-- ===== Exploring ===== -->
-			<section class="section reveal" aria-labelledby="exploring-title">
-				<h2 id="exploring-title" class="section-title underlined">on the horizon</h2>
-				<ul class="chips">
-					<li class="pill">self-hosted LLMs</li>
-					<li class="pill">model training</li>
-					<li class="pill">open source</li>
+			<!-- ===== Field Notes ===== -->
+			<section class="section reveal" aria-labelledby="notes-title">
+				<h2 id="notes-title" class="section-title">field notes</h2>
+				<div class="notes">
+					<details class="note">
+						<summary>
+							<span class="note-title">Lifting Indian PII recall from 69% to 97% locally</span>
+							<span class="date">oct 2026</span>
+							<svg class="icon chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9l-7 7-7-7" /></svg>
+						</summary>
+						<div class="note-body">
+							<p>
+								Pure regex catches structured IDs like PAN and IFSC quickly, yet misses noisy Aadhaar scans,
+								free-form addresses, and Indian names in multilingual PDFs. When we benchmarked our first
+								rule-only pass at Hacktoberfest Hack Day Pune across 150 test documents, recall stalled at
+								68.9%.
+							</p>
+							<p>
+								Pairing Verhoeff checksum rules with an on-device NER pass and Tesseract OCR across English,
+								Hindi, and Marathi lifted recall to 97.3% at 100% precision in ~60 ms on CPU. Every token
+								stays inside the local FastAPI sidecar before the masked prompt reaches ChatGPT, Gemini, or
+								Claude, with an optional Qwen3-4B deep scan through Ollama for ambiguous paragraphs.
+							</p>
+						</div>
+					</details>
+
+					<details class="note">
+						<summary>
+							<span class="note-title">Rewriting SysCleanX from Python to a 6 MB Rust binary</span>
+							<span class="date">2025 — 2026</span>
+							<svg class="icon chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9l-7 7-7-7" /></svg>
+						</summary>
+						<div class="note-body">
+							<p>
+								SysCleanX started as a Python utility packed into a heavy executable that took seconds just
+								to unpack its runtime. Rewriting it in Rust with egui and direct Win32 calls shrunk it into
+								a single ~6 MB native app that starts cold in milliseconds with no background service and no
+								telemetry.
+							</p>
+							<p>
+								The hardest part wasn't multithreaded scanning across 81 browser profiles and caches—it was
+								making cleanup boringly safe. Every candidate path passes through a hard-coded safety guard
+								that rejects system roots, refuses to follow symlinks or junction points, and keeps startup
+								toggles reversible.
+							</p>
+						</div>
+					</details>
+				</div>
+			</section>
+
+			<!-- ===== On the Horizon ===== -->
+			<section class="section reveal" aria-labelledby="horizon-title">
+				<h2 id="horizon-title" class="section-title underlined">on the horizon</h2>
+				<ul class="horizon-list">
+					<li>self-hosted LLMs</li>
+					<li>model training</li>
+					<li>open source</li>
 				</ul>
 			</section>
 		</main>
@@ -331,15 +567,17 @@
 					<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>resume
 				</a>
 			</nav>
-			<p class="colophon">
-				<span>© 2026 dipanshu singh · charted by hand in html &amp; css</span>
-				<button class="shell-hint" type="button"><kbd>/</kbd> off the map</button>
+			<p class="footer-whisper">
+				<button class="shell-hint" type="button" aria-label="Open hidden terminal shell">
+					<span class="shell-glyph" aria-hidden="true">›</span>
+					<span data-easter-label>psst — try pressing <kbd>/</kbd></span>
+				</button>
 			</p>
 		</footer>
 	</div>
 
 	<!-- Hidden shell: press / (or the footer button) to open -->
-	<div class="shell" role="dialog" aria-modal="true" aria-labelledby="shell-title" hidden>
+	<dialog class="shell" aria-labelledby="shell-title">
 		<div class="shell-window">
 			<div class="shell-bar">
 				<span class="shell-dots" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -354,6 +592,21 @@
 				<input id="shell-in" class="shell-in" type="text" spellcheck="false" autocapitalize="off" autocomplete="off" enterkeyhint="send" />
 			</form>
 		</div>
+	</dialog>
+
+	<!-- Auto-hiding whole-page scroll indicator (contribution-graph squares) -->
+	<div
+		class="page-scroll-bar"
+		data-page-scroll-bar
+		role="scrollbar"
+		aria-label="Page scroll progress"
+		aria-orientation="vertical"
+		aria-valuemin="0"
+		aria-valuemax="100"
+		aria-valuenow="0"
+		tabindex="-1"
+	>
+		<div class="page-scroll-blocks" data-page-scroll-blocks aria-hidden="true"></div>
 	</div>
 
 	<p class="toast" role="status" aria-live="polite"></p>

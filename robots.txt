@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://dipannshuuuu.web.app/sitemap.xml

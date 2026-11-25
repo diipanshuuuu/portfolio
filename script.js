@@ -9,6 +9,7 @@
 
 	// Replaced by the sparks section below when motion is allowed
 	var celebrate = function () {};
+	var triggerMatrixRain = function () {};
 
 	/* ---------- Theme toggle: the new theme grows out of the button ---------- */
 	var toggle = document.querySelector(".theme-toggle");
@@ -21,7 +22,7 @@
 
 	applyTheme(root.dataset.theme || "dark");
 
-	toggle.addEventListener("click", function () {
+	function toggleTheme() {
 		var next = root.dataset.theme === "light" ? "dark" : "light";
 		try {
 			localStorage.setItem("theme", next);
@@ -29,7 +30,7 @@
 
 		if (!document.startViewTransition || reduceMotion) {
 			applyTheme(next);
-			return;
+			return next;
 		}
 
 		var rect = toggle.getBoundingClientRect();
@@ -52,6 +53,12 @@
 					{ duration: 500, easing: "cubic-bezier(0.22, 1, 0.36, 1)", pseudoElement: "::view-transition-new(root)" }
 				);
 			}, function () {});
+
+		return next;
+	}
+
+	toggle.addEventListener("click", function () {
+		toggleTheme();
 	});
 
 	/* ---------- Copy email ---------- */
@@ -59,20 +66,45 @@
 	var copyStatus = document.querySelector("[data-copy-status]");
 	var copyTimer;
 
+	function markCopied() {
+		copyBtn.classList.add("is-copied");
+		copyStatus.textContent = "Email copied to clipboard";
+		clearTimeout(copyTimer);
+		copyTimer = setTimeout(function () {
+			copyBtn.classList.remove("is-copied");
+			copyStatus.textContent = "";
+		}, 2000);
+	}
+
+	function fallbackCopy(text) {
+		var ta = document.createElement("textarea");
+		ta.value = text;
+		ta.setAttribute("readonly", "");
+		ta.style.position = "fixed";
+		ta.style.opacity = "0";
+		document.body.appendChild(ta);
+		ta.select();
+		var ok = false;
+		try {
+			ok = document.execCommand("copy");
+		} catch (e) {}
+		document.body.removeChild(ta);
+		return ok;
+	}
+
 	copyBtn.addEventListener("click", function () {
 		if (!navigator.clipboard) {
-			window.location.href = "mailto:" + EMAIL;
+			if (fallbackCopy(EMAIL)) markCopied();
+			else window.location.href = "mailto:" + EMAIL;
 			return;
 		}
-		navigator.clipboard.writeText(EMAIL).then(function () {
-			copyBtn.classList.add("is-copied");
-			copyStatus.textContent = "Email copied to clipboard";
-			clearTimeout(copyTimer);
-			copyTimer = setTimeout(function () {
-				copyBtn.classList.remove("is-copied");
-				copyStatus.textContent = "";
-			}, 2000);
-		});
+		navigator.clipboard.writeText(EMAIL).then(
+			markCopied,
+			function () {
+				if (fallbackCopy(EMAIL)) markCopied();
+				else toast(EMAIL + " · copy blocked by browser");
+			}
+		);
 	});
 
 	/* ---------- Toast ---------- */
@@ -90,15 +122,15 @@
 	}
 
 	/* ---------- Accent colors (Konami code, or `accent` in the shell) ---------- */
-	var ACCENTS = ["green", "orange", "blue", "pink"];
+	var ACCENTS = ["mono", "orange", "blue", "pink"];
 
 	function currentAccent() {
-		return ACCENTS.indexOf(root.dataset.accent) > 0 ? root.dataset.accent : "green";
+		return ACCENTS.indexOf(root.dataset.accent) > 0 ? root.dataset.accent : "mono";
 	}
 
 	function setAccent(name) {
 		if (ACCENTS.indexOf(name) === -1) return false;
-		if (name === "green") delete root.dataset.accent;
+		if (name === "mono") delete root.dataset.accent;
 		else root.dataset.accent = name;
 		try {
 			localStorage.setItem("accent", name);
@@ -130,6 +162,500 @@
 		};
 		tickClock();
 		setInterval(tickClock, 15000);
+	}
+
+	/* ---------- GitHub contribution graph (above "where i am") ---------- */
+	var contribData = null; // shared with the shell's `stats` command
+	var contribGrid = document.querySelector("[data-contrib-grid]");
+	var contribTotal = document.querySelector("[data-contrib-total]");
+	var contribScroll = document.querySelector("[data-contrib-scroll]");
+	var contribFrame = document.querySelector("[data-contrib-frame]");
+	var contribTooltip = document.querySelector("[data-contrib-tooltip]");
+
+	if (contribGrid && contribTotal) {
+		var CONTRIB_WEEKS = 38;
+		var CONTRIB_ACCOUNTS = ["diipanshuuuu", "htmnsrc"];
+		var CONTRIB_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+		var pinnedCell = null;
+
+		// Render skeleton cells immediately so layout height never shifts
+		(function renderSkeleton() {
+			var frag = document.createDocumentFragment();
+			for (var i = 0; i < CONTRIB_WEEKS * 7; i++) {
+				var cell = document.createElement("span");
+				cell.className = "contrib-cell is-skeleton";
+				cell.setAttribute("data-level", "0");
+				cell.setAttribute("aria-hidden", "true");
+				frag.appendChild(cell);
+			}
+			contribGrid.appendChild(frag);
+		})();
+
+		function formatContribLabel(day) {
+			var parts = day.date.split("-");
+			var y = Number(parts[0]);
+			var m = Number(parts[1]);
+			var d = Number(parts[2]);
+			var month = CONTRIB_MONTHS[m - 1] || "";
+			var count = Number(day.count) || 0;
+			var prefix = count === 0 ? "No contributions" : count === 1 ? "1 contribution" : count + " contributions";
+			return prefix + " on " + month + " " + d + ", " + y;
+		}
+
+		function showContribTooltip(target, text) {
+			if (!contribTooltip || !contribFrame) return;
+			contribTooltip.textContent = text;
+			contribTooltip.hidden = false;
+			var frameRect = contribFrame.getBoundingClientRect();
+			var cellRect = target.getBoundingClientRect();
+			var center = cellRect.left - frameRect.left + cellRect.width / 2;
+			var half = contribTooltip.offsetWidth / 2;
+			var clamped = Math.max(half + 4, Math.min(frameRect.width - half - 4, center));
+			contribTooltip.style.left = clamped + "px";
+		}
+
+		function clearPinnedCell() {
+			if (pinnedCell) {
+				pinnedCell.classList.remove("is-pinned");
+				pinnedCell = null;
+			}
+		}
+
+		function hideContribTooltip(force) {
+			if (!force && pinnedCell) return;
+			if (force) clearPinnedCell();
+			if (contribTooltip) contribTooltip.hidden = true;
+		}
+
+		function snapContribRight() {
+			if (contribScroll && contribScroll.scrollWidth > contribScroll.clientWidth) {
+				contribScroll.scrollLeft = contribScroll.scrollWidth;
+			}
+		}
+
+		if (contribScroll && "ResizeObserver" in window) {
+			var lastScrollWidth = 0;
+			new ResizeObserver(function () {
+				var w = contribScroll.clientWidth;
+				if (w && w !== lastScrollWidth) {
+					lastScrollWidth = w;
+					snapContribRight();
+				}
+			}).observe(contribScroll);
+		}
+
+		document.addEventListener("click", function (e) {
+			if (!pinnedCell) return;
+			if (contribFrame && contribFrame.contains(e.target)) return;
+			hideContribTooltip(true);
+		});
+
+		function groupIntoWeeks(contributions, maxWeeks) {
+			var weeks = [];
+			var week = [null, null, null, null, null, null, null];
+			contributions.forEach(function (day) {
+				if (!day || !/^\d{4}-\d{2}-\d{2}$/.test(day.date)) return;
+				var p = day.date.split("-").map(Number);
+				var dow = new Date(Date.UTC(p[0], p[1] - 1, p[2])).getUTCDay();
+				if (dow === 0 && week.some(Boolean)) {
+					weeks.push(week);
+					week = [null, null, null, null, null, null, null];
+				}
+				week[dow] = day;
+			});
+			if (week.some(Boolean)) weeks.push(week);
+			return weeks.length > maxWeeks ? weeks.slice(weeks.length - maxWeeks) : weeks;
+		}
+
+		function computeContribStatsClient(contributions) {
+			var activeDays = 0;
+			var longestStreak = 0;
+			var runningStreak = 0;
+			var busiestDay = null;
+			contributions.forEach(function (day) {
+				var c = Number(day.count) || 0;
+				if (c > 0) {
+					activeDays += 1;
+					runningStreak += 1;
+					if (runningStreak > longestStreak) longestStreak = runningStreak;
+					if (!busiestDay || c > busiestDay.count) busiestDay = { date: day.date, count: c };
+				} else {
+					runningStreak = 0;
+				}
+			});
+			var currentStreak = 0;
+			for (var i = contributions.length - 1; i >= 0; i--) {
+				var count = Number(contributions[i].count) || 0;
+				if (count > 0) currentStreak += 1;
+				else if (i === contributions.length - 1) continue;
+				else break;
+			}
+			return { activeDays: activeDays, longestStreak: longestStreak, currentStreak: currentStreak, busiestDay: busiestDay };
+		}
+
+		function mergePayloadsClient(entries) {
+			var map = Object.create(null);
+			var byAccount = Object.create(null);
+			entries.forEach(function (entry) {
+				var payload = entry.payload;
+				var user = entry.user;
+				var list = payload && Array.isArray(payload.contributions) ? payload.contributions : [];
+				var acctTotal = 0;
+				list.forEach(function (item) {
+					if (!item || !/^\d{4}-\d{2}-\d{2}$/.test(item.date)) return;
+					var c = Math.max(0, Math.floor(Number(item.count) || 0));
+					map[item.date] = (map[item.date] || 0) + c;
+					acctTotal += c;
+				});
+				if (user) byAccount[user] = acctTotal;
+			});
+			var dates = Object.keys(map).sort();
+			var total = 0;
+			var maxCount = 0;
+			dates.forEach(function (date) {
+				var c = map[date];
+				total += c;
+				if (c > maxCount) maxCount = c;
+			});
+			var contributions = dates.map(function (date) {
+				var c = map[date];
+				var lvl = c <= 0 ? 0 : maxCount <= 1 ? 4 : c / maxCount <= 0.25 ? 1 : c / maxCount <= 0.5 ? 2 : c / maxCount <= 0.75 ? 3 : 4;
+				return { date: date, count: c, level: lvl };
+			});
+			return {
+				total: total,
+				byAccount: byAccount,
+				stats: computeContribStatsClient(contributions),
+				contributions: contributions
+			};
+		}
+
+		function buildBreakdownSummary(data) {
+			var bits = [];
+			if (data && data.byAccount) {
+				Object.keys(data.byAccount).forEach(function (user) {
+					bits.push(data.byAccount[user] + " on @" + user);
+				});
+			}
+			if (data && data.stats) {
+				if (data.stats.activeDays) bits.push(data.stats.activeDays + " active days");
+				if (data.stats.longestStreak) bits.push("streak " + data.stats.longestStreak + "d");
+				if (data.stats.busiestDay) bits.push("best " + data.stats.busiestDay.count + "/day");
+			}
+			return bits.join(" · ");
+		}
+
+		function renderContributions(data) {
+			contribData = data;
+			var weeks = groupIntoWeeks(data.contributions || [], CONTRIB_WEEKS);
+			if (!weeks.length) {
+				contribTotal.textContent = "view contributions on github ↗";
+				return;
+			}
+			var frag = document.createDocumentFragment();
+			weeks.forEach(function (week) {
+				for (var row = 0; row < 7; row++) {
+					var day = week[row];
+					if (!day) {
+						var spacer = document.createElement("span");
+						spacer.className = "contrib-cell is-empty";
+						spacer.setAttribute("aria-hidden", "true");
+						frag.appendChild(spacer);
+						continue;
+					}
+					var cell = document.createElement("button");
+					var label = formatContribLabel(day);
+					cell.type = "button";
+					cell.className = "contrib-cell";
+					cell.setAttribute("data-level", String(day.level || 0));
+					cell.setAttribute("data-date", day.date);
+					cell.setAttribute("data-count", String(day.count || 0));
+					cell.setAttribute("aria-label", label);
+					cell.title = label;
+					(function (el, text) {
+						el.addEventListener("pointerenter", function (e) {
+							if (e.pointerType === "touch") return;
+							showContribTooltip(el, text);
+						});
+						el.addEventListener("focus", function () {
+							showContribTooltip(el, text);
+						});
+						el.addEventListener("blur", function () {
+							hideContribTooltip(false);
+						});
+						el.addEventListener("click", function (e) {
+							e.stopPropagation();
+							if (pinnedCell === el) {
+								hideContribTooltip(true);
+								return;
+							}
+							clearPinnedCell();
+							pinnedCell = el;
+							el.classList.add("is-pinned");
+							showContribTooltip(el, text);
+						});
+					})(cell, label);
+					frag.appendChild(cell);
+				}
+			});
+
+			contribGrid.textContent = "";
+			contribGrid.appendChild(frag);
+			contribGrid.addEventListener("pointerleave", function () {
+				hideContribTooltip(false);
+			});
+
+			var totalNum = Number(data.total) || 0;
+			contribTotal.textContent = totalNum.toLocaleString("en-US") + " contribution" + (totalNum === 1 ? "" : "s") + " in the last year";
+
+			var summary = buildBreakdownSummary(data);
+			if (summary) {
+				contribTotal.title = summary;
+				contribTotal.addEventListener("pointerenter", function (e) {
+					if (e.pointerType === "touch") return;
+					showContribTooltip(contribTotal, summary);
+				});
+				contribTotal.addEventListener("focus", function () {
+					showContribTooltip(contribTotal, summary);
+				});
+				contribTotal.addEventListener("pointerleave", function () {
+					hideContribTooltip(false);
+				});
+				contribTotal.addEventListener("blur", function () {
+					hideContribTooltip(false);
+				});
+			}
+
+			snapContribRight();
+		}
+
+		function loadDirectFromPublicApi() {
+			return Promise.all(
+				CONTRIB_ACCOUNTS.map(function (user) {
+					return fetch("https://github-contributions-api.jogruber.de/v4/" + encodeURIComponent(user) + "?y=last")
+						.then(function (r) {
+							return r.ok ? r.json() : null;
+						})
+						.then(function (payload) {
+							return payload ? { user: user, payload: payload } : null;
+						})
+						.catch(function () {
+							return null;
+						});
+				})
+			).then(function (results) {
+				var valid = results.filter(Boolean);
+				if (!valid.length) throw new Error("No contribution data");
+				return mergePayloadsClient(valid);
+			});
+		}
+
+		fetch("/api/github-contributions")
+			.then(function (r) {
+				if (!r.ok) throw new Error("API unavailable");
+				return r.json();
+			})
+			.catch(loadDirectFromPublicApi)
+			.then(renderContributions)
+			.catch(function () {
+				contribTotal.textContent = "view contributions on github ↗";
+				contribGrid.querySelectorAll(".is-skeleton").forEach(function (el) {
+					el.classList.remove("is-skeleton");
+				});
+			});
+	}
+
+	/* ---------- Live GitHub repo stars & commit freshness ---------- */
+	var repoMetaEls = Array.prototype.slice.call(document.querySelectorAll("[data-repo-meta]"));
+	if (repoMetaEls.length) {
+		function formatRelativePush(iso) {
+			if (!iso) return "";
+			var ms = Date.now() - Date.parse(iso);
+			if (!Number.isFinite(ms) || ms < 0) return "today";
+			var days = Math.floor(ms / 86400000);
+			if (days <= 0) return "today";
+			if (days === 1) return "1d ago";
+			if (days < 14) return days + "d ago";
+			if (days < 60) return Math.floor(days / 7) + "w ago";
+			if (days < 365) return Math.floor(days / 30) + "mo ago";
+			return Math.floor(days / 365) + "y ago";
+		}
+
+		function paintRepoMeta(repos) {
+			if (!repos || typeof repos !== "object") return;
+			repoMetaEls.forEach(function (el) {
+				var slug = el.getAttribute("data-repo-meta");
+				var info = repos[slug];
+				if (!info) return;
+				var parts = [];
+				if (typeof info.stars === "number" && info.stars > 0) parts.push("★ " + info.stars);
+				var rel = formatRelativePush(info.pushedAt);
+				if (rel) parts.push("updated " + rel);
+				if (!parts.length) return;
+				el.textContent = parts.join(" · ");
+				el.hidden = false;
+			});
+		}
+
+		function loadReposDirectly() {
+			var slugs = repoMetaEls.map(function (el) {
+				return el.getAttribute("data-repo-meta");
+			}).filter(Boolean);
+			return Promise.all(
+				slugs.map(function (slug) {
+					return fetch("https://api.github.com/repos/" + slug, { headers: { Accept: "application/vnd.github+json" } })
+						.then(function (r) {
+							return r.ok ? r.json() : null;
+						})
+						.then(function (d) {
+							return d ? [slug, { stars: Number(d.stargazers_count) || 0, pushedAt: d.pushed_at || null }] : null;
+						})
+						.catch(function () {
+							return null;
+						});
+				})
+			).then(function (pairs) {
+				var out = Object.create(null);
+				pairs.forEach(function (p) {
+					if (p) out[p[0]] = p[1];
+				});
+				return { repos: out };
+			});
+		}
+
+		fetch("/api/github-repos")
+			.then(function (r) {
+				if (!r.ok) throw new Error("API unavailable");
+				return r.json();
+			})
+			.catch(loadReposDirectly)
+			.then(function (json) {
+				if (json && json.repos) paintRepoMeta(json.repos);
+			})
+			.catch(function () {});
+	}
+
+	/* ---------- Interactive Kavach on-device PII redaction sandbox ---------- */
+	var kavachLab = document.querySelector("[data-kavach-lab]");
+	if (kavachLab) {
+		var kavachInput = kavachLab.querySelector("[data-kavach-input]");
+		var kavachOutput = kavachLab.querySelector("[data-kavach-output]");
+		var kavachStatus = kavachLab.querySelector("[data-kavach-status]");
+		var kavachSamples = Array.prototype.slice.call(kavachLab.querySelectorAll("[data-kavach-sample]"));
+
+		var KAVACH_SAMPLES = {
+			kyc: "Share Rahul's Aadhaar 2345 6789 0123 and PAN ABCDE1234F to rahul@okicici",
+			bank: "Wire Rs 45,000 to IFSC SBIN0001234, confirm on +91 9876543210 or finance@acme.in",
+			invoice: "Client PAN BXZPK9012M · UPI priya.dev@oksbi · call 9123456789 before dispatch"
+		};
+
+		var KAVACH_RULES = [
+			{ type: "AADHAAR", regex: /\b[2-9]\d{3}[\s-]?\d{4}[\s-]?\d{4}\b/g },
+			{ type: "PAN", regex: /\b[A-Z]{5}\d{4}[A-Z]\b/g },
+			{ type: "IFSC", regex: /\b[A-Z]{4}0[A-Z0-9]{6}\b/g },
+			{ type: "UPI", regex: /\b[a-zA-Z0-9._-]{2,}@(?:okaxis|okhdfcbank|okicici|oksbi|upi|ybl|paytm|ibl|axl)\b/gi },
+			{ type: "EMAIL", regex: /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/g },
+			{ type: "PHONE", regex: /(?:\+91[\s-]?)?\b[6-9]\d{9}\b/g }
+		];
+
+		function redactIndianPIIClient(text) {
+			if (!text) return { segments: [], entities: [] };
+			var candidates = [];
+			KAVACH_RULES.forEach(function (rule) {
+				rule.regex.lastIndex = 0;
+				var m;
+				while ((m = rule.regex.exec(text)) !== null) {
+					candidates.push({ type: rule.type, start: m.index, end: m.index + m[0].length, raw: m[0] });
+				}
+			});
+			candidates.sort(function (a, b) {
+				return a.start - b.start || b.end - a.end;
+			});
+			var accepted = [];
+			var cursor = 0;
+			candidates.forEach(function (c) {
+				if (c.start < cursor) return;
+				accepted.push(c);
+				cursor = c.end;
+			});
+			var counts = Object.create(null);
+			var segments = [];
+			var entities = [];
+			var pos = 0;
+			accepted.forEach(function (item) {
+				if (item.start > pos) segments.push({ kind: "text", value: text.slice(pos, item.start) });
+				counts[item.type] = (counts[item.type] || 0) + 1;
+				var token = "[" + item.type + "_" + counts[item.type] + "]";
+				entities.push({ type: item.type, token: token });
+				segments.push({ kind: "mask", value: token, type: item.type });
+				pos = item.end;
+			});
+			if (pos < text.length) segments.push({ kind: "text", value: text.slice(pos) });
+			return { segments: segments, entities: entities };
+		}
+
+		function renderKavachLab() {
+			if (!kavachInput || !kavachOutput || !kavachStatus) return;
+			var val = kavachInput.value;
+			var result = redactIndianPIIClient(val);
+			kavachOutput.textContent = "";
+			if (!val.trim()) {
+				kavachOutput.textContent = "masked prompt preview appears here…";
+				kavachStatus.textContent = "stays 100% in your browser";
+				kavachStatus.classList.remove("is-masked");
+				return;
+			}
+			result.segments.forEach(function (seg) {
+				if (seg.kind === "mask") {
+					var span = document.createElement("span");
+					span.className = "kavach-mask";
+					span.textContent = seg.value;
+					kavachOutput.appendChild(span);
+				} else {
+					kavachOutput.appendChild(document.createTextNode(seg.value));
+				}
+			});
+			if (result.entities.length) {
+				var seen = [];
+				result.entities.forEach(function (e) {
+					if (seen.indexOf(e.type) === -1) seen.push(e.type);
+				});
+				kavachStatus.textContent =
+					"✓ " +
+					result.entities.length +
+					" " +
+					(result.entities.length === 1 ? "entity" : "entities") +
+					" masked on-device (" +
+					seen.join(", ") +
+					")";
+				kavachStatus.classList.add("is-masked");
+			} else {
+				kavachStatus.textContent = "no Indian PII detected · safe to send";
+				kavachStatus.classList.remove("is-masked");
+			}
+		}
+
+		if (kavachInput) {
+			kavachInput.addEventListener("input", function () {
+				kavachSamples.forEach(function (btn) {
+					var key = btn.getAttribute("data-kavach-sample");
+					btn.classList.toggle("is-active", KAVACH_SAMPLES[key] === kavachInput.value);
+				});
+				renderKavachLab();
+			});
+			kavachSamples.forEach(function (btn) {
+				btn.addEventListener("click", function () {
+					var key = btn.getAttribute("data-kavach-sample");
+					if (!KAVACH_SAMPLES[key]) return;
+					kavachInput.value = KAVACH_SAMPLES[key];
+					kavachSamples.forEach(function (other) {
+						other.classList.toggle("is-active", other === btn);
+					});
+					renderKavachLab();
+				});
+			});
+			renderKavachLab();
+		}
 	}
 
 	/* ---------- Live signal: Discord presence via Lanyard (api.lanyard.rest) ---------- */
@@ -185,7 +711,7 @@
 			if (custom) items.push(["“", custom.state, "”", false]);
 			if (!items.length) {
 				var status = data.discord_status || "offline";
-				items.push(status === "offline" ? ["offline · ", "probably exploring irl", "", false] : [STATUS_TEXT[status] + " on ", "discord", "", false]);
+				items.push(status === "offline" ? ["offline · ", "away from keyboard", "", false] : [STATUS_TEXT[status] + " on ", "discord", "", false]);
 			}
 			return items;
 		};
@@ -326,9 +852,12 @@
 		var pastAt = 0;
 
 		var LINKS = {
+			"kool-playground": "https://koolplayground.web.app",
+			unprompted: "https://unpromted.web.app",
+			cortext: "https://unpromted.web.app",
 			kavach: "https://github.com/diipanshuuuu/Kavach",
+			syscleanx: "https://syscleanx.web.app",
 			"nst-sdc": "https://nst-sdc-site-ten.vercel.app",
-			syscleanx: "https://github.com/htmnsrc/SysCleanX",
 			github: "https://github.com/diipanshuuuu",
 			linkedin: "https://www.linkedin.com/in/diipanshuuuu",
 			resume: "resume.pdf",
@@ -353,21 +882,30 @@
 			shellOut.scrollTop = shellOut.scrollHeight;
 		};
 
+		var isShellOpen = function () {
+			return Boolean(shell.open);
+		};
+
 		var openShell = function () {
-			if (!shell.hidden) return;
+			if (isShellOpen()) return;
 			opener = document.activeElement;
-			shell.hidden = false;
+			if (typeof shell.showModal === "function") shell.showModal();
+			else shell.setAttribute("open", "");
 			document.body.style.overflow = "hidden";
 			shellIn.focus();
 			scrollShell();
 		};
 
 		var closeShell = function () {
-			if (shell.hidden) return;
-			shell.hidden = true;
+			if (!isShellOpen()) return;
+			if (typeof shell.close === "function") shell.close();
+			else shell.removeAttribute("open");
+		};
+
+		shell.addEventListener("close", function () {
 			document.body.style.overflow = "";
 			if (opener && opener.focus) opener.focus({ preventScroll: true });
-		};
+		});
 
 		var hireMe = function () {
 			var steps = [
@@ -384,7 +922,7 @@
 					var copied = navigator.clipboard ? navigator.clipboard.writeText(EMAIL) : Promise.reject();
 					copied.then(
 						function () {
-							print("→ " + EMAIL + " copied to your clipboard. let's go explore something together.", "acc");
+							print("→ " + EMAIL + " copied to your clipboard. let's build something together.", "acc");
 							scrollShell();
 						},
 						function () {
@@ -403,10 +941,12 @@
 		// Sections of the page, as places you can travel to from the shell
 		var WAYPOINTS = [
 			["where", "today-title", "where i am"],
+			["edu", "education-title", "education"],
 			["kit", "skills-title", "what i carry"],
 			["trail", "journey-title", "the trail so far"],
 			["built", "projects-title", "built along the way"],
-			["horizon", "exploring-title", "on the horizon"],
+			["notes", "notes-title", "field notes"],
+			["horizon", "horizon-title", "on the horizon"],
 			["find", "links-title", "find me"]
 		];
 
@@ -419,17 +959,19 @@
 		var commands = {
 			help: function () {
 				printHTML(
-					"<pre><b>about</b>         who's exploring\n" +
+					"<pre><b>about</b>         who's behind this\n" +
 						"<b>projects</b>      built along the way (open &lt;name&gt; to visit)\n" +
 						"<b>skills</b>        what i carry\n" +
+						"<b>stats</b>         live github contribution stats\n" +
 						"<b>where</b>         current position\n" +
 						"<b>map</b>           waypoints on this page (goto &lt;place&gt;)\n" +
 						"<b>compass</b>       pick a heading\n" +
 						"<b>contact</b>       send a signal (copies my email)\n" +
 						"<b>discord</b>       live signal from discord\n" +
+						"<b>presence</b>      now · clock · dot\n" +
 						"<b>neofetch</b>      system info, obviously\n" +
 						"<b>theme</b>         day / night\n" +
-						"<b>accent</b>        green · orange · blue · pink\n" +
+						"<b>accent</b>        mono · orange · blue · pink\n" +
 						"<b>clear</b>         wipe the screen\n" +
 						"<b>exit</b>          back to the trail\n" +
 						"<b>sudo hire-me</b>  you know you want to</pre>"
@@ -437,27 +979,48 @@
 			},
 			about: function () {
 				print("Dipanshu Singh: first-year B.Tech CSE (AI & ML) at Newton School of Technology, based in Ayodhya.");
-				print("exploring open source, software dev, and self-hosting / training AI models with Ollama & Hugging Face.", "dim");
+				print("building open-source tools, web & systems software, and local AI with Ollama & Hugging Face.", "dim");
 			},
 			whoami: function () {
-				print("a fellow explorer. could be my next teammate → sudo hire-me", "dim");
+				print("a fellow builder. could be my next teammate → sudo hire-me", "dim");
 			},
 			projects: function () {
-				print("kavach      local privacy shield for ai chats");
-				print("syscleanx   fast, safety-first windows cleaner + uninstaller in rust");
-				print("nst-sdc     vanilla redesign of my college's dev club site, live github data");
+				print("kool-playground  minimal byok multi-provider llm workbench");
+				print("unprompted       8-stage 3d webgl llm explainer + live distilgpt-2 perplexity");
+				print("kavach           local privacy shield for ai chats");
+				print("syscleanx        fast, safety-first windows cleaner in rust + next.js site");
+				print("nst-sdc          vanilla redesign of my college's dev club site");
 				print("type: open <name>", "dim");
 			},
 			skills: function () {
-				print("languages  python · javascript · c · c++ · rust · bash");
-				print("web        html · css · javascript");
-				print("ai / ml    ollama · hugging face · local llms · model training");
-				print("tools      git · github · linux · vim · vs code · firebase · vercel");
+				print("languages  python · typescript · javascript · rust · c · c++ · bash");
+				print("web        react · next.js · tailwind css · vite · express · fastapi · three.js · html · css");
+				print("ai / ml    ollama · hugging face · tesseract ocr · local llms · model training");
+				print("tools      git · github · linux · vim · vs code · egui · firebase · vercel");
+			},
+			stats: function () {
+				if (!contribData) {
+					print("github contribution stats aren't loaded yet. try again in a second.", "dim");
+					return;
+				}
+				var total = Number(contribData.total) || 0;
+				print(total.toLocaleString("en-US") + " contributions in the last year", "acc");
+				if (contribData.byAccount) {
+					var split = Object.keys(contribData.byAccount).map(function (u) {
+						return "@" + u + " (" + contribData.byAccount[u] + ")";
+					});
+					if (split.length) print("accounts   " + split.join(" · "));
+				}
+				if (contribData.stats) {
+					var s = contribData.stats;
+					print("active     " + (s.activeDays || 0) + " days · longest streak " + (s.longestStreak || 0) + "d · current " + (s.currentStreak || 0) + "d");
+					if (s.busiestDay) print("busiest    " + s.busiestDay.count + " contributions on " + s.busiestDay.date, "dim");
+				}
 			},
 			open: function (args) {
 				var key = (args[0] || "").toLowerCase();
 				if (!LINKS[key]) {
-					print("usage: open kavach | syscleanx | nst-sdc | github | linkedin | discord | resume", "err");
+					print("usage: open kool-playground | unprompted | kavach | syscleanx | nst-sdc | github | linkedin | discord | resume", "err");
 					return;
 				}
 				print("opening " + key + " ↗", "acc");
@@ -489,7 +1052,7 @@
 				var activity = currentActivity(presence);
 				if (activity) print((ACTIVITY_KIND[activity.type] || "doing") + " " + activity.name + (activity.details ? " · " + activity.details : ""));
 				if (presence.listening_to_spotify && presence.spotify) print("listening to " + presence.spotify.song + " by " + presence.spotify.artist);
-				if (!activity && !presence.listening_to_spotify) print("nothing running. probably exploring.", "dim");
+				if (!activity && !presence.listening_to_spotify) print("nothing running. probably away from keyboard.", "dim");
 			},
 			github: function () {
 				commands.open(["github"]);
@@ -504,13 +1067,13 @@
 				printHTML(
 					'<div class="neo"><pre class="acc">     _\n  __| |\n / _` |\n| (_| | _\n \\__,_|(_)</pre>' +
 						"<pre><b>guest</b>@<b>dipanshu</b>\n---------------\n" +
-						"<b>os</b>      compass 26.10 (still exploring)\n" +
+						"<b>os</b>      compass 26.10 (work in progress)\n" +
 						"<b>loc</b>     26.79°n 82.20°e, ayodhya\n" +
 						"<b>kernel</b>  b.tech-cse-ai-ml (year 1)\n" +
-						"<b>uptime</b>  exploring since 2025\n" +
+						"<b>uptime</b>  building since 2025\n" +
 						"<b>shell</b>   vanilla html, css & js\n" +
 						"<b>status</b>  open to work\n" +
-						'<span class="neo-colors"><i style="background:#22c55e"></i><i style="background:#fb923c"></i><i style="background:#38bdf8"></i><i style="background:#f472b6"></i><i style="background:#e0e2e8"></i></span></pre></div>'
+						'<span class="neo-colors"><i style="background:#e5e7eb"></i><i style="background:#a6abb2"></i><i style="background:#6d7279"></i><i style="background:#3b3f45"></i><i style="background:#16181b"></i></span></pre></div>'
 				);
 			},
 			where: function () {
@@ -544,8 +1107,25 @@
 				print("heading: " + headings[(Math.random() * headings.length) | 0], "acc");
 			},
 			theme: function () {
-				toggle.click();
-				print("theme → " + (root.dataset.theme === "light" ? "dark" : "light"), "acc");
+				var next = toggleTheme();
+				print("theme → " + next, "acc");
+			},
+			presence: function (args) {
+				var mode = (args[0] || "").toLowerCase();
+				var modes = ["now", "clock", "dot"];
+				if (!mode) {
+					print("current: " + (root.dataset.presence || "clock") + " · try: presence " + modes.join(" | "), "dim");
+					return;
+				}
+				if (modes.indexOf(mode) === -1) {
+					print("unknown presence mode: " + args[0] + " (use now | clock | dot)", "err");
+					return;
+				}
+				root.dataset.presence = mode;
+				try {
+					localStorage.setItem("presence", mode);
+				} catch (e) {}
+				print("presence → " + mode, "acc");
 			},
 			accent: function (args) {
 				var name = (args[0] || "").toLowerCase();
@@ -581,11 +1161,45 @@
 				var file = (args[0] || "").toLowerCase();
 				if (file === "kit.txt" || file === "skills.txt") commands.skills();
 				else if (file === "map.txt") commands.map();
-				else if (file === ".secrets") print("↑ ↑ ↓ ↓ ← → ← → b a (try it on the page)", "acc");
+				else if (file === ".secrets" || file === ".secret" || file === "secrets") commands.secrets();
 				else if (file === "resume.pdf") print("binary file. try: resume", "dim");
 				else if (file.indexOf("uncharted") === 0) print("cat: uncharted/: nobody's been there yet", "err");
 				else if (file.indexOf("projects") === 0) commands.projects();
 				else print("cat: " + (args[0] || "") + ": no such file", "err");
+			},
+			secrets: function () {
+				var reveal = function () {
+					printHTML(
+						"<pre><b>[01] konami</b>    ↑ ↑ ↓ ↓ ← → ← → b a  (on the page)\n" +
+							"<b>[02] rain</b>      type <b>matrix</b>          (monochrome canvas rain)\n" +
+							"<b>[03] vim keys</b>  j / k · gg · G       (page scroll)\n" +
+							"<b>[04] hire</b>      type <b>sudo hire-me</b>    (copies email + sparks)\n" +
+							"<b>[05] system</b>    type <b>neofetch</b>        (rig &amp; palette)\n" +
+							"<b>[06] coffee</b>    type <b>coffee</b>          (+10 focus, -2 sleep)</pre>"
+					);
+					scrollShell();
+					var r = shellWindow.getBoundingClientRect();
+					celebrate(r.left + r.width / 2, r.top + r.height / 2);
+				};
+				if (reduceMotion) {
+					print("decrypting .secrets ................ ok", "acc");
+					reveal();
+					return;
+				}
+				print("decrypting .secrets ................", "dim");
+				scrollShell();
+				setTimeout(function () {
+					print("access granted.", "acc");
+					reveal();
+				}, 260);
+			},
+			matrix: function () {
+				print("streaming monochrome rain…", "acc");
+				scrollShell();
+				setTimeout(function () {
+					closeShell();
+					triggerMatrixRain();
+				}, 220);
 			},
 			cd: function (args) {
 				var key = (args[0] || "").toLowerCase();
@@ -619,7 +1233,31 @@
 				closeShell();
 			}
 		};
-		var ALIASES = { "?": "help", man: "help", work: "projects", kit: "skills", whereami: "where", waypoints: "map", go: "goto", hire: "hire-me", email: "contact", cls: "clear", quit: "exit" };
+		var ALIASES = { "?": "help", man: "help", work: "projects", kit: "skills", contrib: "stats", whereami: "where", waypoints: "map", go: "goto", hire: "hire-me", email: "contact", rain: "matrix", secret: "secrets", ".secrets": "secrets", ".secret": "secrets", cls: "clear", quit: "exit" };
+		var ARG_COMPLETIONS = {
+			open: function () {
+				return Object.keys(LINKS);
+			},
+			goto: function () {
+				return WAYPOINTS.map(function (w) {
+					return w[0];
+				});
+			},
+			cd: function () {
+				return WAYPOINTS.map(function (w) {
+					return w[0];
+				});
+			},
+			cat: function () {
+				return ["kit.txt", "map.txt", "projects/", "resume.pdf", ".secrets", "uncharted/"];
+			},
+			presence: function () {
+				return ["now", "clock", "dot"];
+			},
+			accent: function () {
+				return ACCENTS;
+			}
+		};
 
 		var run = function (raw) {
 			var line = raw.trim();
@@ -652,7 +1290,26 @@
 				pastAt = Math.min(past.length, pastAt + 1);
 				shellIn.value = past[pastAt] || "";
 			} else if (e.key === "Tab" && shellIn.value.trim()) {
-				var typed = shellIn.value.trim().toLowerCase();
+				var raw = shellIn.value;
+				var spaceIdx = raw.indexOf(" ");
+				if (spaceIdx !== -1) {
+					var cmdRaw = raw.slice(0, spaceIdx).trim().toLowerCase();
+					var resolved = ALIASES[cmdRaw] || cmdRaw;
+					var partial = raw.slice(spaceIdx + 1).trim().toLowerCase();
+					var getOptions = ARG_COMPLETIONS[resolved];
+					if (getOptions) {
+						var opts = getOptions();
+						var argMatch = opts.filter(function (o) {
+							return o.indexOf(partial) === 0 && o !== partial;
+						})[0];
+						if (argMatch) {
+							e.preventDefault();
+							shellIn.value = cmdRaw + " " + argMatch;
+						}
+					}
+					return;
+				}
+				var typed = raw.trim().toLowerCase();
 				var match = Object.keys(commands).filter(function (c) {
 					return c.indexOf(typed) === 0 && c !== typed;
 				})[0];
@@ -663,32 +1320,84 @@
 			}
 		});
 
-		// Keep focus inside the dialog
-		shell.addEventListener("keydown", function (e) {
-			if (e.key !== "Tab" || e.defaultPrevented) return;
-			if (e.shiftKey && document.activeElement === shellClose) {
-				e.preventDefault();
-				shellIn.focus();
-			} else if (!e.shiftKey && document.activeElement === shellIn) {
-				e.preventDefault();
-				shellClose.focus();
-			}
-		});
+		var lastGTime = 0;
+		document.addEventListener(
+			"keydown",
+			function (e) {
+				if (isShellOpen() && e.key === "Escape") {
+					e.preventDefault();
+					closeShell();
+					return;
+				}
+				if (isShellOpen() || e.metaKey || e.ctrlKey || e.altKey) return;
+				var target = e.target;
+				if (target && target.closest && target.closest("input, textarea, select, [contenteditable]")) return;
+				var isSlash = e.key === "/" || e.key === "`" || (!e.shiftKey && e.code === "Slash") || e.code === "NumpadDivide";
+				if (isSlash) {
+					e.preventDefault();
+					e.stopPropagation();
+					openShell();
+					return;
+				}
+				/* Subtle Vim-style scrolling: j / k / gg / G */
+				if (e.key === "j" && !e.shiftKey) {
+					lastGTime = 0;
+					window.scrollBy({ top: 180, behavior: reduceMotion ? "auto" : "smooth" });
+				} else if (e.key === "k" && !e.shiftKey) {
+					lastGTime = 0;
+					window.scrollBy({ top: -180, behavior: reduceMotion ? "auto" : "smooth" });
+				} else if (e.key === "G" && e.shiftKey) {
+					lastGTime = 0;
+					window.scrollTo({ top: document.documentElement.scrollHeight, behavior: reduceMotion ? "auto" : "smooth" });
+				} else if (e.key === "g" && !e.shiftKey) {
+					var now = performance.now();
+					if (now - lastGTime < 500) {
+						lastGTime = 0;
+						window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+					} else {
+						lastGTime = now;
+					}
+				} else {
+					lastGTime = 0;
+				}
+			},
+			true
+		);
 
-		window.addEventListener("keydown", function (e) {
-			if (!shell.hidden && e.key === "Escape") {
-				e.preventDefault();
-				closeShell();
-				return;
-			}
-			if (!shell.hidden || e.metaKey || e.ctrlKey || e.altKey) return;
-			if (e.key !== "/" && e.key !== "`") return;
-			if (e.target.closest && e.target.closest("input, textarea, select, [contenteditable]")) return;
-			e.preventDefault();
-			openShell();
-		});
+		var easterLabel = document.querySelector("[data-easter-label]");
+		var easterUnlocked = false;
 
-		if (shellHint) shellHint.addEventListener("click", openShell);
+		var launchFromFooterHint = function () {
+			if (shellHint && !reduceMotion) {
+				var rect = shellHint.getBoundingClientRect();
+				celebrate(rect.left + rect.width * 0.5, rect.top + rect.height * 0.5);
+				shellHint.classList.remove("is-pulsing");
+				void shellHint.offsetWidth;
+				shellHint.classList.add("is-pulsing");
+			}
+
+			var firstTime = !easterUnlocked;
+			if (firstTime) {
+				easterUnlocked = true;
+				if (shellHint) shellHint.classList.add("is-unlocked");
+				if (easterLabel) {
+					easterLabel.innerHTML = 'shell unlocked · press <kbd>/</kbd> anytime';
+				}
+			}
+
+			var openNow = function () {
+				openShell();
+				if (firstTime) {
+					print("// psst — try: cat .secrets", "dim");
+					scrollShell();
+				}
+			};
+
+			if (reduceMotion) openNow();
+			else setTimeout(openNow, 150);
+		};
+
+		if (shellHint) shellHint.addEventListener("click", launchFromFooterHint);
 		shellClose.addEventListener("click", closeShell);
 		shell.addEventListener("click", function (e) {
 			if (e.target === shell) closeShell();
@@ -699,12 +1408,36 @@
 		});
 	}
 
-	/* ---------- Project previews: the live site, screenshots straight from the repo, or the demo ---------- */
+	/* ---------- Print-mode completeness: expand details while printing ---------- */
+	var closedForPrint = [];
+	var lazyMediaLoaders = [];
+	window.addEventListener("beforeprint", function () {
+		closedForPrint = [];
+		document.querySelectorAll("details.project, details.note").forEach(function (d) {
+			if (!d.open) {
+				closedForPrint.push(d);
+				d.open = true;
+			}
+		});
+		lazyMediaLoaders.forEach(function (loadNow) {
+			loadNow();
+		});
+	});
+	window.addEventListener("afterprint", function () {
+		closedForPrint.forEach(function (d) {
+			d.open = false;
+		});
+		closedForPrint = [];
+	});
+
+	/* ---------- Project & Note previews: viewport + disclosure lazy loading ---------- */
 	function probe(url) {
 		return new Promise(function (resolve) {
 			var img = new Image();
 			img.decoding = "async";
+			if ("fetchPriority" in img) img.fetchPriority = "low";
 			img.onload = function () {
+				img.loading = "lazy";
 				resolve(img);
 			};
 			img.onerror = function () {
@@ -724,7 +1457,7 @@
 
 	// Several screenshots: one at a time, crossfading, with dots to jump between them.
 	// The active dot fills like a progress bar; when it finishes (CSS animationend), the next shot slides in.
-	// Screenshots can arrive one by one: `add` slots each into the slideshow as it loads.
+	// Screenshots arrive lazily: first shot loads immediately, additional slides load sequentially.
 	function startSlides(preview, strip) {
 		var imgs = [];
 		var buttons = [];
@@ -788,23 +1521,44 @@
 		};
 	}
 
+	function scheduleIdle(fn) {
+		if ("requestIdleCallback" in window) {
+			window.requestIdleCallback(fn, { timeout: 1200 });
+		} else {
+			setTimeout(fn, 180);
+		}
+	}
+
 	function loadPreview(preview) {
 		if (preview.dataset.loaded) return;
 		preview.dataset.loaded = "1";
 
-		// Websites: embed the real thing, rendered at desktop size and scaled to fit
+		// Websites: embed the real thing lazily, rendered at desktop size and scaled to fit
 		if (preview.dataset.live) {
 			var wrap = document.createElement("div");
 			var frame = document.createElement("iframe");
+			var loaded = false;
 			wrap.className = "preview-live";
 			wrap.inert = true;
 			frame.title = preview.dataset.alt || "Live preview";
+			frame.loading = "lazy";
 			frame.tabIndex = -1;
 			frame.referrerPolicy = "no-referrer";
 			frame.setAttribute("sandbox", "allow-scripts allow-same-origin");
+			var fallbackToDemo = function () {
+				if (loaded) return;
+				setPreviewTag(preview, "demo", "demo");
+			};
+			var loadTimer = setTimeout(fallbackToDemo, 8000);
 			frame.addEventListener("load", function () {
+				loaded = true;
+				clearTimeout(loadTimer);
 				wrap.classList.add("is-loaded");
 				setPreviewTag(preview, "live", "live");
+			});
+			frame.addEventListener("error", function () {
+				clearTimeout(loadTimer);
+				fallbackToDemo();
 			});
 			frame.src = preview.dataset.live;
 			wrap.appendChild(frame);
@@ -818,11 +1572,10 @@
 			return;
 		}
 
-		// Apps: a preview.png in the repo wins, then the listed screenshots; if none load, the demo stays.
-		// Everything is requested at once, and each screenshot appears as soon as it arrives.
+		// Apps: check preview.png first; only fetch fallback screenshots if preview.png is absent/missing,
+		// and load extra slideshow screenshots sequentially during idle time instead of blasting them all at once.
 		var shots = (preview.dataset.shots || "").split(/\s+/).filter(Boolean);
 		var first = preview.dataset.override ? probe(preview.dataset.override) : Promise.resolve(null);
-		var pending = shots.map(probe);
 		var label = preview.dataset.alt || "Screenshot";
 
 		var makeStrip = function (single) {
@@ -842,31 +1595,144 @@
 				makeStrip(true).appendChild(img);
 				return;
 			}
+			if (!shots.length) return;
+
 			var slides = null;
 			var count = 0;
-			pending.forEach(function (p) {
-				p.then(function (shot) {
-					if (!shot) return;
-					count += 1;
-					shot.alt = label + " " + count;
-					if (!slides) slides = startSlides(preview, makeStrip(false));
-					slides.add(shot);
+
+			function loadNextShot(index) {
+				if (index >= shots.length) return;
+				probe(shots[index]).then(function (shot) {
+					if (shot) {
+						count += 1;
+						shot.alt = label + " " + count;
+						if (!slides) slides = startSlides(preview, makeStrip(false));
+						slides.add(shot);
+					}
+					if (index + 1 < shots.length) {
+						scheduleIdle(function () {
+							loadNextShot(index + 1);
+						});
+					}
 				});
-			});
+			}
+
+			loadNextShot(0);
 		});
 	}
 
-	// Only fetch a preview once its project is opened
-	document.querySelectorAll(".preview").forEach(function (preview) {
-		var project = preview.closest("details");
-		if (!project || project.open) {
-			loadPreview(preview);
-			return;
+	// Lazy-load media across both Projects (.projects) and Field Notes (.notes):
+	// Mirrors lib/lazy-media.js shouldLoadMedia — requires BOTH viewport proximity AND open <details>
+	(function initLazySectionMedia() {
+		var items = [];
+		var observedEls = new Map();
+
+		function tryLoad(item, force) {
+			if (item.loaded) return;
+			if (!force) {
+				if (!item.inViewport) return;
+				if (item.details && !item.details.open) return;
+			}
+			item.loaded = true;
+			if (mediaObserver && item.observeEl) {
+				var group = observedEls.get(item.observeEl);
+				if (group) {
+					var remaining = group.filter(function (entry) {
+						return !entry.loaded;
+					});
+					if (remaining.length) {
+						observedEls.set(item.observeEl, remaining);
+					} else {
+						mediaObserver.unobserve(item.observeEl);
+						observedEls.delete(item.observeEl);
+					}
+				}
+			}
+			item.load();
 		}
-		project.addEventListener("toggle", function () {
-			if (project.open) loadPreview(preview);
+
+		var mediaObserver =
+			"IntersectionObserver" in window
+				? new IntersectionObserver(
+						function (entries) {
+							entries.forEach(function (entry) {
+								var group = observedEls.get(entry.target);
+								if (!group) return;
+								group.forEach(function (item) {
+									item.inViewport = entry.isIntersecting;
+									if (entry.isIntersecting) tryLoad(item, false);
+								});
+							});
+						},
+						{ rootMargin: "240px 0px", threshold: 0.01 }
+					)
+				: null;
+
+		function register(targetEl, loadFn) {
+			var details = targetEl.closest("details");
+			// Observe the <details> container when inside one (collapsed previews have 0 height)
+			var observeEl = details || targetEl;
+			var item = {
+				observeEl: observeEl,
+				details: details,
+				inViewport: !mediaObserver,
+				loaded: false,
+				load: loadFn,
+			};
+			items.push(item);
+			lazyMediaLoaders.push(function () {
+				tryLoad(item, true);
+			});
+
+			if (mediaObserver) {
+				var list = observedEls.get(observeEl);
+				if (!list) {
+					list = [];
+					observedEls.set(observeEl, list);
+					mediaObserver.observe(observeEl);
+				}
+				list.push(item);
+			}
+
+			if (details) {
+				details.addEventListener("toggle", function () {
+					if (details.open) {
+						// Also check live bounding rect in case the toggle happened while already in view
+						if (!item.inViewport) {
+							var r = observeEl.getBoundingClientRect();
+							var vh = window.innerHeight || document.documentElement.clientHeight || 0;
+							if (r.top < vh + 240 && r.bottom > -240) item.inViewport = true;
+						}
+						tryLoad(item, false);
+					}
+				});
+			}
+
+			if (!mediaObserver) tryLoad(item, false);
+		}
+
+		// 1. All .preview cards across Projects and Notes
+		document.querySelectorAll(".projects .preview, .notes .preview, .preview").forEach(function (preview) {
+			if (preview.dataset.lazyBound) return;
+			preview.dataset.lazyBound = "1";
+			register(preview, function () {
+				loadPreview(preview);
+			});
 		});
-	});
+
+		// 2. Any <img> inside Projects or Field Notes (native lazy attrs + optional data-src hydration)
+		document.querySelectorAll(".projects img, .notes img").forEach(function (img) {
+			if (!img.getAttribute("loading")) img.setAttribute("loading", "lazy");
+			if (!img.getAttribute("decoding")) img.setAttribute("decoding", "async");
+			if (img.dataset.src && !img.getAttribute("src")) {
+				register(img, function () {
+					if (img.dataset.srcset) img.srcset = img.dataset.srcset;
+					img.src = img.dataset.src;
+					delete img.dataset.src;
+				});
+			}
+		});
+	})();
 
 	/* ---------- Projects open on hover (desktop); click and keyboard still toggle ---------- */
 	// One project open at a time. Hovering a row opens it, holds that row still while the others
@@ -972,13 +1838,222 @@
 		});
 	}
 
+	/* ---------- Whole-page scroll indicator (auto-hiding contribution squares) ---------- */
+	(function initPageScrollBar() {
+		var bar = document.querySelector("[data-page-scroll-bar]");
+		var blocksWrap = bar && bar.querySelector("[data-page-scroll-blocks]");
+		if (!bar || !blocksWrap) return;
+
+		var TOTAL_BLOCKS = 18;
+		var AUTO_HIDE_MS = 1400;
+		var blockEls = [];
+
+		// Build 18 contribution-sized squares once using pure DOM nodes
+		blocksWrap.textContent = "";
+		for (var i = 0; i < TOTAL_BLOCKS; i++) {
+			var cell = document.createElement("span");
+			cell.className = "page-scroll-block";
+			cell.setAttribute("data-level", "0");
+			blocksWrap.appendChild(cell);
+			blockEls.push(cell);
+		}
+
+		function clamp01(v) {
+			if (!Number.isFinite(v)) return 0;
+			if (v <= 0) return 0;
+			if (v >= 1) return 1;
+			return v;
+		}
+
+		// Mirrors lib/reading-progress.js computePageScrollProgress
+		function getScrollMetrics() {
+			var docEl = document.documentElement;
+			var vh = window.innerHeight || docEl.clientHeight || 0;
+			var sh = Math.max(docEl.scrollHeight || 0, document.body ? document.body.scrollHeight : 0);
+			var maxScroll = Math.max(0, sh - vh);
+			var y = window.scrollY || window.pageYOffset || docEl.scrollTop || 0;
+			var scrollable = maxScroll > 1;
+			var progress = scrollable ? clamp01(y / maxScroll) : 0;
+			return {
+				progress: progress,
+				percent: Math.round(progress * 100),
+				scrollable: scrollable,
+				maxScroll: maxScroll,
+			};
+		}
+
+		// Mirrors lib/reading-progress.js computeScrollBlocks
+		function applyBlockStates(progress) {
+			var headIndex = Math.round(clamp01(progress) * (TOTAL_BLOCKS - 1));
+			for (var idx = 0; idx < TOTAL_BLOCKS; idx++) {
+				var el = blockEls[idx];
+				if (idx > headIndex) {
+					el.classList.remove("is-visible");
+					el.setAttribute("data-level", "0");
+					continue;
+				}
+				var level;
+				if (idx === headIndex) {
+					level = 4;
+				} else if (headIndex < 4) {
+					level = Math.max(0, 4 - (headIndex - idx));
+				} else {
+					level = Math.min(3, Math.floor((idx / headIndex) * 4));
+				}
+				el.classList.add("is-visible");
+				el.setAttribute("data-level", String(level));
+			}
+		}
+
+		var frame = 0;
+		var hideTimer = 0;
+		var hovered = false;
+		var dragging = false;
+		var activePointerId = null;
+
+		function scheduleAutoHide() {
+			clearTimeout(hideTimer);
+			if (hovered || dragging) return;
+			hideTimer = setTimeout(function () {
+				if (!hovered && !dragging) {
+					bar.classList.remove("is-active");
+				}
+			}, AUTO_HIDE_MS);
+		}
+
+		function wakeBar() {
+			if (bar.hidden) return;
+			bar.classList.add("is-active");
+			scheduleAutoHide();
+		}
+
+		function updateBar(shouldWake) {
+			frame = 0;
+			var m = getScrollMetrics();
+			bar.hidden = !m.scrollable;
+			if (!m.scrollable) {
+				bar.classList.remove("is-active");
+				return;
+			}
+			bar.setAttribute("aria-valuenow", String(m.percent));
+			applyBlockStates(m.progress);
+			if (shouldWake) wakeBar();
+		}
+
+		var pendingWake = false;
+		function scheduleUpdate(shouldWake) {
+			if (shouldWake) pendingWake = true;
+			if (!frame) {
+				frame = requestAnimationFrame(function () {
+					var w = pendingWake;
+					pendingWake = false;
+					updateBar(w);
+				});
+			}
+		}
+
+		function scrubToClientY(clientY) {
+			var rect = blocksWrap.getBoundingClientRect();
+			if (!rect.height) return;
+			var ratio = clamp01((clientY - rect.top) / rect.height);
+			var m = getScrollMetrics();
+			if (!m.scrollable) return;
+			window.scrollTo({
+				top: Math.round(ratio * m.maxScroll),
+				behavior: "instant",
+			});
+			updateBar(true);
+		}
+
+		bar.addEventListener("pointerenter", function () {
+			hovered = true;
+			clearTimeout(hideTimer);
+		});
+
+		bar.addEventListener("pointerleave", function () {
+			hovered = false;
+			scheduleAutoHide();
+		});
+
+		bar.addEventListener("pointerdown", function (e) {
+			if (e.button !== 0) return;
+			dragging = true;
+			activePointerId = e.pointerId;
+			clearTimeout(hideTimer);
+			bar.classList.add("is-active", "is-dragging");
+			if (bar.setPointerCapture) {
+				try {
+					bar.setPointerCapture(e.pointerId);
+				} catch (_) {}
+			}
+			scrubToClientY(e.clientY);
+		});
+
+		bar.addEventListener("pointermove", function (e) {
+			if (!dragging || e.pointerId !== activePointerId) return;
+			scrubToClientY(e.clientY);
+		});
+
+		function endDrag(e) {
+			if (!dragging) return;
+			if (e && activePointerId !== null && e.pointerId !== activePointerId) return;
+			dragging = false;
+			bar.classList.remove("is-dragging");
+			if (activePointerId !== null && bar.releasePointerCapture) {
+				try {
+					bar.releasePointerCapture(activePointerId);
+				} catch (_) {}
+			}
+			activePointerId = null;
+			scheduleAutoHide();
+		}
+
+		bar.addEventListener("pointerup", endDrag);
+		bar.addEventListener("pointercancel", endDrag);
+
+		window.addEventListener(
+			"scroll",
+			function () {
+				scheduleUpdate(true);
+			},
+			{ passive: true }
+		);
+		window.addEventListener(
+			"resize",
+			function () {
+				scheduleUpdate(false);
+			},
+			{ passive: true }
+		);
+
+		// Re-measure whenever collapsible projects or field notes open/close
+		document.querySelectorAll("details.project, details.note").forEach(function (el) {
+			el.addEventListener("toggle", function () {
+				scheduleUpdate(false);
+				setTimeout(function () {
+					scheduleUpdate(false);
+				}, 320);
+			});
+		});
+
+		if ("ResizeObserver" in window && document.body) {
+			var scrollRo = new ResizeObserver(function () {
+				scheduleUpdate(false);
+			});
+			scrollRo.observe(document.body);
+		}
+
+		// Sync initial block states silently (starts auto-hidden until user scrolls)
+		updateBar(false);
+	})();
+
 	/* ---------- Tab title + a hello for whoever opens devtools ---------- */
 	var baseTitle = document.title;
 	document.addEventListener("visibilitychange", function () {
-		document.title = document.hidden ? "come back, there's more to explore…" : baseTitle;
+		document.title = document.hidden ? "hey, come back — still building…" : baseTitle;
 	});
-	console.log("%c d. %c still exploring ", "background:#22c55e;color:#08090a;font:700 16px monospace;padding:2px 6px", "font:13px monospace");
-	console.log("you opened devtools, so you like exploring too. press / on the page to go off the map, or say hi → " + EMAIL);
+	console.log("%c d. %c building things ", "background:#e5e7eb;color:#08090a;font:700 16px monospace;padding:2px 6px", "font:13px monospace");
+	console.log("you opened devtools, so you like poking under the hood too. press / on the page to open the shell, or say hi → " + EMAIL);
 
 	if (reduceMotion) return;
 
@@ -1120,9 +2195,32 @@
 		ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 	}
 
+	var rainState = null;
+
 	function draw() {
 		ctx.clearRect(0, 0, innerWidth, innerHeight);
 		var rgb = getComputedStyle(root).getPropertyValue("--fg-rgb").trim().split(/\s+/).join(", ");
+
+		if (rainState) {
+			var elapsed = performance.now() - rainState.start;
+			var totalMs = 3400;
+			var fade = elapsed > totalMs - 900 ? Math.max(0, (totalMs - elapsed) / 900) : Math.min(1, elapsed / 260);
+			ctx.font = '12px "JetBrains Mono", ui-monospace, monospace';
+			for (var col = 0; col < rainState.drops.length; col++) {
+				var drop = rainState.drops[col];
+				drop.y += drop.speed;
+				if (drop.y * 18 > innerHeight + 120) drop.y = -Math.random() * 14;
+				for (var trail = 0; trail < 6; trail++) {
+					var py = Math.floor(drop.y - trail) * 18;
+					if (py < -18 || py > innerHeight + 18) continue;
+					var alpha = (1 - trail / 6) * (trail === 0 ? 0.52 : 0.24) * fade;
+					ctx.fillStyle = "rgba(" + rgb + ", " + alpha.toFixed(3) + ")";
+					var glyph = rainState.chars[(col * 7 + Math.floor(drop.y) + trail) % rainState.chars.length];
+					ctx.fillText(glyph, col * 24 + 8, py);
+				}
+			}
+			if (elapsed >= totalMs) rainState = null;
+		}
 
 		clicks.forEach(function (c) {
 			c.age += 1;
@@ -1144,8 +2242,8 @@
 			return c.age < MAX_AGE;
 		});
 
-		// Only animate while there are sparks on screen
-		if (clicks.length) {
+		// Only animate while there are sparks or rain on screen
+		if (clicks.length || rainState) {
 			requestAnimationFrame(draw);
 		} else {
 			ctx.clearRect(0, 0, innerWidth, innerHeight);
@@ -1161,6 +2259,23 @@
 		}
 	}
 
+	triggerMatrixRain = function () {
+		var cols = Math.max(12, Math.floor(innerWidth / 24));
+		var drops = [];
+		for (var i = 0; i < cols; i++) {
+			drops.push({ y: -Math.random() * 22, speed: 0.28 + Math.random() * 0.42 });
+		}
+		rainState = {
+			start: performance.now(),
+			drops: drops,
+			chars: "01/·:+-=_[]{}<>*#"
+		};
+		if (!running) {
+			running = true;
+			requestAnimationFrame(draw);
+		}
+	};
+
 	// A small ring of sparks for secrets and sudo hire-me
 	celebrate = function (x, y) {
 		for (var i = 0; i < 10; i++) {
@@ -1172,6 +2287,35 @@
 			})(i);
 		}
 	};
+
+	/* ---------- Cursor-proximity faint dot grid ---------- */
+	var dotGrid = document.querySelector(".dot-grid");
+	if (dotGrid && finePointer) {
+		var gridFrame = 0;
+		var gx = -999;
+		var gy = -999;
+		var paintDotGrid = function () {
+			gridFrame = 0;
+			dotGrid.style.setProperty("--mx", gx + "px");
+			dotGrid.style.setProperty("--my", gy + "px");
+		};
+		window.addEventListener(
+			"pointermove",
+			function (e) {
+				gx = e.clientX;
+				gy = e.clientY;
+				if (!gridFrame) gridFrame = requestAnimationFrame(paintDotGrid);
+			},
+			{ passive: true }
+		);
+		document.addEventListener("mouseout", function (e) {
+			if (!e.relatedTarget) {
+				gx = -999;
+				gy = -999;
+				if (!gridFrame) gridFrame = requestAnimationFrame(paintDotGrid);
+			}
+		});
+	}
 
 	resize();
 	window.addEventListener("resize", resize);

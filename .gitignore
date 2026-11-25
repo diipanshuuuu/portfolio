@@ -13,3 +13,7 @@
 .firebase/
 firebase-debug.log*
 
+# Dependencies
+node_modules/
+
+
